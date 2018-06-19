@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/gomisha/blockchain#readme",
   "devDependencies": {
+    "jest": "^23.1.0",
     "nodemon": "^1.17.5"
   }
 }
