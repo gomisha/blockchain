@@ -1,4 +1,8 @@
-class Block {
+export class Block {
+	timestamp: string;
+	lastHash: string;
+	hash: string;
+	data: string;
 
 	constructor(timestamp, lastHash, hash, data) {
 		this.timestamp = timestamp;
@@ -8,7 +12,7 @@ class Block {
 	}
 	
 	static genesis() {
-		return new this('Genesis Time1111', '-----', '1111first-hash', []);
+		return new this('Genesis Time', '-----', 'f1r5t-ha4h', []);
 	}
 
 	toString() {
@@ -20,5 +24,3 @@ class Block {
 		`;
 	}
 }
-
-module.exports = Block;

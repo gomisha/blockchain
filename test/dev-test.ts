@@ -1,6 +1,6 @@
-const Block = require('../src/block');
+import { Block } from "../src/block";
 
-const block = new Block('foo11', 'foo22', 'foo333', 'foo4444');
+const block = new Block('foo1', 'foo2', 'foo3', 'foo4');
 
 console.log(block.toString());
 console.log(Block.genesis().toString());
