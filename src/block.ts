@@ -4,7 +4,7 @@ export class Block {
 	hash: string;
 	data: string;
 
-	constructor(timestamp, lastHash, hash, data) {
+	constructor(timestamp: string, lastHash: string, hash: string, data: string) {
 		this.timestamp = timestamp;
 		this.lastHash = lastHash;
 		this.hash = hash;
@@ -12,7 +12,7 @@ export class Block {
 	}
 	
 	static genesis() {
-		return new this('Genesis Time', '-----', 'f1r5t-ha4h', []);
+		return new this('Genesis Time', '-----', 'f1r5t-ha4h', '');
 	}
 
 	toString() {
