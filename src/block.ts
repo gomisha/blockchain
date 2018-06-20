@@ -8,7 +8,7 @@ class Block {
 	}
 	
 	static genesis() {
-		return new this('Genesis Time', '-----', 'hello', 'first-hash', []);
+		return new this('Genesis Time1111', '-----', '1111first-hash', []);
 	}
 
 	toString() {
