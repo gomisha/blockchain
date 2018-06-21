@@ -19,4 +19,27 @@ export class Blockchain {
 
         return newBlock;
     }
+
+    /**
+     * Validates the chain by checking if:
+     * - every element's last hash value matches previous block's hash
+     * - data has been tampered with (which will produce a different hash value)
+     * - genesis block's hash values match
+     * @param chain 
+     */
+    isValidChain(chain: Block []): boolean {
+        if(JSON.stringify(chain[0]) !== JSON.stringify(Block.getGenesisBlock())) {
+            return false;
+        }
+
+        for(let i:number=1; i<chain.length; i++) {
+            const currentBlock: Block = chain[i];
+            const previousBlock: Block = chain[i-1];
+            if(currentBlock.lastHash !== previousBlock.hash ||
+               currentBlock.hash     !== Block.generateHash2(currentBlock)) {
+                return false;
+            }
+        }
+        return true;
+    }
 }

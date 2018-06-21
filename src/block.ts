@@ -22,8 +22,8 @@ export class Block {
 
 	/**
 	 * Mines new block that will be added to the blockchain.
-	 * @param lastBlock Link to the previous block for storing its hash
-	 * @param data Data to store of the new block
+	 * @param lastBlock Link to the previous block for storing its hash.
+	 * @param data Data to store of the new block.
 	 */
 	static mineNewBlock(lastBlock: Block, data: string): Block {
 		const timestamp: number = Date.now();
@@ -34,6 +34,15 @@ export class Block {
 
 	static generateHash(timestamp: number, lastHash: string, data: string): string {
 		return SHA256(`${timestamp}${lastHash}${data}`).toString();
+	}
+
+	/**
+	 * Convenience method to generate hash based on a block - used for validation.
+	 * @param block The block to generate hash from.
+	 */
+	static generateHash2(block: Block): string {
+		const { timestamp, lastHash, data} = block;
+		return Block.generateHash(timestamp, lastHash, data);
 	}
 
 	toString(): string {
