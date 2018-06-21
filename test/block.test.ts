@@ -1,13 +1,13 @@
 import { Block } from "../src/block";
 
-describe('block', () => {
-	let data, lastBlock, block;
+describe('Block', () => {
+	let data, previousBlock, block;
 	
-	beforeEach(() =>{
-		block = new Block(123, 'foo2', 'foo3', 'foo4');
+	beforeEach(() => {
+		//block = new Block(123, 'foo2', 'foo3', 'foo4');
 		data = 'test1';
-		lastBlock = Block.getGenesisBlock();
-		block = Block.mineNewBlock(lastBlock, data);
+		previousBlock = Block.getGenesisBlock();
+		block = Block.mineNewBlock(previousBlock, data);
 	});
 	
 	it('sets data to match input', () => {
@@ -15,6 +15,6 @@ describe('block', () => {
 	});
 	
 	it('sets last hash to match hash of last block', () =>{
-		expect(block.lastHash).toEqual(lastBlock.hash);
+		expect(block.lastHash).toEqual(previousBlock.hash);
 	});
 });

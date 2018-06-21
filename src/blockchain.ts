@@ -1,4 +1,4 @@
-import { Block } from "../src/block";
+import { Block } from "./block";
 
 export class Blockchain {
     chain: Block [];
