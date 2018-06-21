@@ -36,22 +36,54 @@ describe('Blockchain', () => {
     it("validate chain - invalid chain - corrupt genesis data", () => {
         blockchain2.chain[0].data = "corrupt";
         expect(blockchain.isValidChain(blockchain2.chain)).toBe(false);
-    })
+    });
 
     it("validate chain - invalid chain - corrupt genesis hash", () => {
         blockchain2.chain[0].hash = "corrupt";
         expect(blockchain.isValidChain(blockchain2.chain)).toBe(false);
-    })
+    });
 
     it("validate chain - invalid chain - corrupt non-genesis data", () => {
         blockchain2.addBlock("foo");
         blockchain2.chain[1].data = "corrupt";
         expect(blockchain.isValidChain(blockchain2.chain)).toBe(false);
-    })
+    });
 
     it("validate chain - invalid chain - corrupt non-genesis hash", () => {
         blockchain2.addBlock("foo");
         blockchain2.chain[1].hash = "corrupt";
         expect(blockchain.isValidChain(blockchain2.chain)).toBe(false);
+    });
+
+    it("replace blockchain - valid", () => {
+        //node 2 got new block
+        blockchain2.addBlock("new block");
+
+        //node 1 should get updated
+        expect(blockchain.replaceChain(blockchain2)).toBe(true);
+
+        expect(blockchain.chain).toEqual(blockchain2.chain);
+    });
+
+    it("replace blockchain - invalid - new chain is too short", () => {
+        //node 2 got new block
+        blockchain2.addBlock("new block");
+
+        //node 2 should NOT get updated with node 1's chain
+        expect(blockchain2.replaceChain(blockchain)).toBe(false);
+
+        expect(blockchain.chain).not.toEqual(blockchain2.chain); 
+    });
+
+    it("replace blockchain - invalid - corrupt data", () => {
+        //node 2 got new block
+        blockchain2.addBlock("new block");
+
+        blockchain2.chain[1].data = "corrupted";
+
+        //node 1 should NOT get updated - node 2's blockchain is corrupted
+        expect(blockchain.replaceChain(blockchain2)).toBe(false);
+
+        expect(blockchain.chain).not.toEqual(blockchain2.chain);
     })
 });

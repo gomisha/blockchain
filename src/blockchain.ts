@@ -42,4 +42,23 @@ export class Blockchain {
         }
         return true;
     }
+
+    /**
+     * 
+     * @param blockchain The new blockchain that is a candidate for replacing the current blockchain.
+     * @returns True if blockchain was replaced, false otherwise.
+     */
+    replaceChain(blockchain: Blockchain): boolean {
+        if(blockchain.chain.length <= this.chain.length) {
+            console.log("New chain is not longer than current chain - NOT replacing.")
+            return false;
+        }
+        if(!this.isValidChain(blockchain.chain)) {
+            console.log("New chain is not valid - NOT replacing.")
+            return false;
+        }
+        this.chain = blockchain.chain;
+        console.log("Replacing current chain with new chain.")
+        return true;
+    }
 }
