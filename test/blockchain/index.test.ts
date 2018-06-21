@@ -1,4 +1,4 @@
-import { Blockchain } from "../../src/blockchain/blockchain";
+import { Blockchain } from "../../src/blockchain";
 import { Block } from "../../src/blockchain/block";
 
 describe('Blockchain', () => {
