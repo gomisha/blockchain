@@ -1,13 +1,14 @@
-import express = require("express");
-import bodyParser = require("body-parser");
+import * as express from "express";
+import * as bodyParser from "body-parser";
 
 import { Blockchain } from "../blockchain";
-import { request } from "http";
+import { P2pServer } from "./p2p-server";
 
 const HTTP_PORT: string = process.env.HTTP_PORT || "3001";
 
 const app = express();
 const blockchain: Blockchain = new Blockchain();
+const p2pServer: P2pServer = new P2pServer(blockchain);
 
 app.use(bodyParser.json());
 
@@ -26,3 +27,5 @@ app.post("/mine", (request, response) => {
 app.listen(HTTP_PORT, () => {
     console.log(`Listening on port ${HTTP_PORT}`);
 })
+
+p2pServer.listen();

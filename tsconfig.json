@@ -1,6 +1,12 @@
 {
     "compilerOptions": {
         "strictNullChecks": true,
+        "noImplicitAny": true,
+        "moduleResolution": "node",
+        "target": "es5",
+        "lib": [
+            "es6"
+        ]
     },
     "include": [
         "src/**/*",

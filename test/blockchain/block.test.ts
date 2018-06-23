@@ -1,7 +1,7 @@
 import { Block } from "../../src/blockchain/block";
 
 describe('Block', () => {
-	let data, previousBlock, block;
+	let data:string, previousBlock:Block, block:Block;
 	
 	beforeEach(() => {
 		//block = new Block(123, 'foo2', 'foo3', 'foo4');

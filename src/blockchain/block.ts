@@ -1,4 +1,4 @@
-import SHA256 = require("crypto-js/sha256");
+import * as crypto from "crypto-js";
 
 export class Block {
 	timestamp: number;
@@ -33,7 +33,7 @@ export class Block {
 	}
 
 	static generateHash(timestamp: number, lastHash: string, data: string): string {
-		return SHA256(`${timestamp}${lastHash}${data}`).toString();
+		return crypto.SHA256(`${timestamp}${lastHash}${data}`).toString();
 	}
 
 	/**

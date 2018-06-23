@@ -1,7 +1,5 @@
-import webSocket = require("ws");
+import * as WebSocket from "ws";
 import { Blockchain } from "../blockchain";
-import { Socket } from "dgram";
-import { Server } from "../../node_modules/@types/connect";
 
 const P2P_PORT: string = process.env.P2P_PORT || "5001";
 
@@ -9,26 +7,48 @@ const P2P_PORT: string = process.env.P2P_PORT || "5001";
 //ws://localhost:5001,ws://localhost:5002,ws://localhost:5003
 const peers : string [] = process.env.PEERS ? process.env.PEERS.split(",") : [];
 
-class P2pServer {
+export class P2pServer {
     blockchain: Blockchain;
-    sockets: Socket [];
-    readonly server: Server;
+    webSockets: WebSocket [];
+    readonly server: WebSocket.Server;
 
     constructor(blockchain: Blockchain) {
         this.blockchain = blockchain;
-        this.server = webSocket.Server({
-            port: P2P_PORT
+
+        this.server = new WebSocket.Server({
+            port: +P2P_PORT
         });
     }
 
     listen(): void {
-        this.server.on("connection", socket => this.connectSocket(socket));
-        console.log("listening for P2P connections on " + P2P_PORT);
+        this.server.on("connection", webSocket => this.connectSocket(webSocket));
+        this.connectToPeers();
 
+        console.log("listening for P2P connections on " + P2P_PORT);
     }
 
-    connectSocket(socket): void {
-        this.sockets.push(socket);
+    connectToPeers(): void {
+        peers.forEach(peerURL => {
+            //each peer address will be in format: ws://localhost:5001
+            const webSocket: WebSocket = new WebSocket(peerURL);
+            webSocket.on("open", () =>{
+                this.connectSocket(webSocket);
+            })
+        });
+    }
+
+    connectSocket(socket: WebSocket): void {
+        this.webSockets.push(socket);
         console.log("socket connected");
+
+        this.messageHandler(socket);
+        socket.send(JSON.stringify(this.blockchain.chain));
+    }
+
+    messageHandler(socket: WebSocket): void {
+        socket.on("message", message => {
+            const data = JSON.parse(message.toString());
+            console.log("data", data);
+        });
     }
 }
