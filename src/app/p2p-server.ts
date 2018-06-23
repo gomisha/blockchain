@@ -9,7 +9,7 @@ const peers : string [] = process.env.PEERS ? process.env.PEERS.split(",") : [];
 
 export class P2pServer {
     blockchain: Blockchain;
-    webSockets: WebSocket [];
+    webSockets: WebSocket [] = [];
     readonly server: WebSocket.Server;
 
     constructor(blockchain: Blockchain) {
