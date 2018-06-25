@@ -1,6 +1,6 @@
 import * as WebSocket from "ws";
-import { Blockchain } from "../blockchain";
-import { Block } from "../blockchain/block";
+import Blockchain from "../blockchain";
+import Block from "../blockchain/block";
 
 const P2P_PORT: string = process.env.P2P_PORT || "5001";
 
@@ -8,7 +8,7 @@ const P2P_PORT: string = process.env.P2P_PORT || "5001";
 //ws://localhost:5001,ws://localhost:5002,ws://localhost:5003
 const peers : string [] = process.env.PEERS ? process.env.PEERS.split(",") : [];
 
-export class P2pServer {
+export default class P2pServer {
     blockchain: Blockchain;
     webSockets: WebSocket [] = [];
     readonly server: WebSocket.Server;

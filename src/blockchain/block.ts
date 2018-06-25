@@ -1,7 +1,7 @@
 import * as crypto from "crypto-js";
 import * as config from "../config";
 
-export class Block {
+export default class Block {
 	timestamp: number;
 	lastHash: string;
 	hash: string;

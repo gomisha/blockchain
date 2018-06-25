@@ -1,6 +1,6 @@
-import { Block } from "./block";
+import Block from "./block";
 
-export class Blockchain {
+export default class Blockchain {
     chain: Block [];
 
     constructor() {

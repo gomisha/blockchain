@@ -1,5 +1,5 @@
-import { Blockchain } from "../../src/blockchain";
-import { Block } from "../../src/blockchain/block";
+import Blockchain from "../../src/blockchain";
+import Block from "../../src/blockchain/block";
 
 describe('Blockchain', () => {
     let blockchain: Blockchain;
@@ -86,10 +86,4 @@ describe('Blockchain', () => {
 
         expect(blockchain.chain).not.toEqual(blockchain2.chain);
     })
-
-	it("adds 10 blocks", () =>{
-		for(let i=0; i<10; i++) {
-            console.log(blockchain.addBlock("foo[" + i + "]").toString());
-        }
-	})
 });

@@ -1,8 +1,8 @@
 import * as express from "express";
 import * as bodyParser from "body-parser";
 
-import { Blockchain } from "../blockchain";
-import { P2pServer } from "./p2p-server";
+import Blockchain from "../blockchain";
+import P2pServer from "./p2p-server";
 
 const HTTP_PORT: string = process.env.HTTP_PORT || "3001";
 

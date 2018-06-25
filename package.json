@@ -6,7 +6,8 @@
   "scripts": {
     "test": "jest",
     "dev": "nodemon ./src/app",
-    "start": "node ./src/app"
+    "start": "node ./src/app",
+    "dev-test": "node ./test/dev-test.js"
   },
   "repository": {
     "type": "git",
@@ -30,11 +31,12 @@
     "@types/ws": "^5.1.2",
     "body-parser": "^1.18.3",
     "crypto-js": "^3.1.9-1",
+    "elliptic": "^6.4.0",
     "express": "^4.16.3",
     "ws": "^5.2.0"
   },
   "jest": {
     "transform": {},
-    "testRegex": "/test/.*\\.(ts|tsx|js)$"
+    "testRegex": "/test/.*\\.test\\.(js)$"
   }
 }
