@@ -5,22 +5,25 @@ export class Block {
 	timestamp: number;
 	lastHash: string;
 	hash: string;
-	nonce: number;
 	data: string;
+	nonce: number;
+	difficulty: number;
+	
 
-	constructor(timestamp: number, lastHash: string, hash: string, nonce:number, data: string) {
+	constructor(timestamp: number, lastHash: string, hash: string, data: string, nonce:number, difficulty: number) {
 		this.timestamp = timestamp;
 		this.lastHash = lastHash;
 		this.hash = hash;
 		this.data = data;
 		this.nonce = nonce;
+		this.difficulty = difficulty;
 	}
 
 	/**
 	 * First block of the blockchain.
 	 */
 	static getGenesisBlock(): Block {
-		return new this(0, '-----', 'f1r5t-ha4h', 0, '');
+		return new this(0, '-----', 'f1r5t-ha4h', '', 0, config.DIFFICULTY);
 	}
 
 	/**
@@ -33,17 +36,20 @@ export class Block {
 		const lastHash: string = lastBlock.hash;
 		let nonce:number = 0;
 		let hash:string;
+		let {difficulty} = lastBlock;
 		//PROOF OF WORK - keep generating new hashes until get specific number of leading 0's
 		do {
 			timestamp = Date.now();
+			difficulty = Block.adjustDifficulty(lastBlock, timestamp);
+
 			nonce++;
-			hash = Block.generateHash(timestamp, lastHash, nonce, data);
-		} while(hash.substr(0, config.DIFFICULTY) !== "0".repeat(config.DIFFICULTY));
-		return new this(timestamp, lastHash, hash, nonce, data)
+			hash = Block.generateHash(timestamp, lastHash, data, nonce, difficulty);
+		} while(hash.substr(0, difficulty) !== "0".repeat(difficulty));
+		return new this(timestamp, lastHash, hash, data, nonce, difficulty)
 	}
 
-	static generateHash(timestamp: number, lastHash: string, nonce: number, data: string): string {
-		return crypto.SHA256(`${timestamp}${lastHash}${nonce}${data}`).toString();
+	static generateHash(timestamp: number, lastHash: string, data: string, nonce: number, difficulty: number): string {
+		return crypto.SHA256(`${timestamp}${lastHash}${data}${nonce}${difficulty}`).toString();
 	}
 
 	/**
@@ -51,17 +57,32 @@ export class Block {
 	 * @param block The block to generate hash from.
 	 */
 	static generateHash2(block: Block): string {
-		const { timestamp, lastHash, nonce, data} = block;
-		return Block.generateHash(timestamp, lastHash, nonce, data);
+		const { timestamp, lastHash, data, nonce, difficulty} = block;
+		return Block.generateHash(timestamp, lastHash, data, nonce, difficulty);
+	}
+
+	/**
+	 * Adjust difficulty level based on how long it took to mine new block. If new block was mined too quickly
+	 * (by less than the mine rate), difficulty will be increased and if new block was mined too slowly
+	 * difficulty will be decreased.
+	 * @param lastBlock Previous block in the chain.
+	 * @param newBlockTime Date stamp (in milliseonds from 1970) of (potential) new block.
+	 */
+	static adjustDifficulty(lastBlock: Block, newBlockTime: number): number {
+		let { difficulty } = lastBlock;
+		difficulty = lastBlock.timestamp + config.MINE_RATE > newBlockTime ? ++difficulty  : --difficulty;
+
+		return difficulty;
 	}
 
 	toString(): string {
 		return `Block:
-			Timestamp: ${this.timestamp}
-			Last Hash: ${this.lastHash.substring(0,10)}
-			Hash     : ${this.hash.substring(0,10)}
-			Nonce    : ${this.nonce}			
-			Data     : ${this.data}
+			Timestamp  : ${this.timestamp}
+			Last Hash  : ${this.lastHash.substring(0,10)}
+			Hash       : ${this.hash.substring(0,10)}
+			Data       : ${this.data}
+			Nonce      : ${this.nonce}
+			Difficulty : ${this.difficulty}
 		`;
 	}
 }
