@@ -20,6 +20,9 @@ app.post("/mine", (request, response) => {
     const block = blockchain.addBlock(request.body.data)
     console.log("New block added: " + block.toString());
 
+    //update other nodes as soon as new block mined
+    p2pServer.syncChain();
+
     //show updated chain with new block
     response.redirect("/blocks");
 });

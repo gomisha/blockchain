@@ -1,5 +1,6 @@
 import * as WebSocket from "ws";
 import { Blockchain } from "../blockchain";
+import { Block } from "../blockchain/block";
 
 const P2P_PORT: string = process.env.P2P_PORT || "5001";
 
@@ -31,24 +32,45 @@ export class P2pServer {
         peers.forEach(peerURL => {
             //each peer address will be in format: ws://localhost:5001
             const webSocket: WebSocket = new WebSocket(peerURL);
-            webSocket.on("open", () =>{
+            webSocket.on("open", () => {
                 this.connectSocket(webSocket);
             })
         });
     }
 
-    connectSocket(socket: WebSocket): void {
-        this.webSockets.push(socket);
+    connectSocket(webSocket: WebSocket): void {
+        this.webSockets.push(webSocket);
         console.log("socket connected");
 
-        this.messageHandler(socket);
-        socket.send(JSON.stringify(this.blockchain.chain));
+        this.messageHandler(webSocket);
+        this.sendChain(webSocket);
     }
 
     messageHandler(socket: WebSocket): void {
         socket.on("message", message => {
-            const data = JSON.parse(message.toString());
-            console.log("data", data);
+            console.log("messageHander>message.toString()=" + message.toString());
+            const blockchain = new Blockchain();
+            blockchain.chain = <Block []> JSON.parse(message.toString());
+            console.log("data", blockchain);
+
+            this.blockchain.replaceChain(blockchain);
         });
+    }
+
+    /**
+     * Convenience method for sending blockchain on a socket.
+     * @param webSocket The WebScoket to send the blockchain is on.
+     */
+    sendChain(webSocket: WebSocket): void {
+        webSocket.send(JSON.stringify(this.blockchain.chain));
+    }
+
+    /**
+     * Send current blockchain to every other node so they can synchronize with it.
+     */
+    syncChain(): void {
+        this.webSockets.forEach(webSocket =>{
+            this.sendChain(webSocket);
+        })
     }
 }
