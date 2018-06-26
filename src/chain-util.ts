@@ -1,10 +1,14 @@
 const EC = require("elliptic").ec;
-const ec = new EC('secp256k1');
+import * as uuidV1 from "uuid/v1";
 
-//import * as EC from "elliptic";
+const ec = new EC('secp256k1');
 
 export default class ChainUtil {
     static genKeyPair() {
         return ec.genKeyPair();
+    }
+
+    static genID(): string {
+        return uuidV1();
     }
 }
