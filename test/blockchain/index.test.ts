@@ -10,11 +10,11 @@ describe('Blockchain', () => {
         blockchain2 = new Blockchain();
     });
     
-    it("starts with Genesis Block", () => {
+    test("starts with Genesis Block", () => {
         expect(blockchain.chain[0]).toEqual(Block.getGenesisBlock());
     });
 
-    it("adds new block", () => {
+    test("adds new block", () => {
         let data:string = "barData";
         let newBlock = blockchain.addBlock(data);
 
@@ -28,34 +28,34 @@ describe('Blockchain', () => {
         expect(newBlock).toEqual(blockchain.chain[blockchain.chain.length-1]);
     });
 
-    it("validate chain - valid chain", () => {
+    test("validate chain - valid chain", () => {
         blockchain2.addBlock("foo");
         expect(blockchain.isValidChain(blockchain2.chain)).toBe(true);
     });
 
-    it("validate chain - invalid chain - corrupt genesis data", () => {
+    test("validate chain - invalid chain - corrupt genesis data", () => {
         blockchain2.chain[0].data = "corrupt";
         expect(blockchain.isValidChain(blockchain2.chain)).toBe(false);
     });
 
-    it("validate chain - invalid chain - corrupt genesis hash", () => {
+    test("validate chain - invalid chain - corrupt genesis hash", () => {
         blockchain2.chain[0].hash = "corrupt";
         expect(blockchain.isValidChain(blockchain2.chain)).toBe(false);
     });
 
-    it("validate chain - invalid chain - corrupt non-genesis data", () => {
+    test("validate chain - invalid chain - corrupt non-genesis data", () => {
         blockchain2.addBlock("foo");
         blockchain2.chain[1].data = "corrupt";
         expect(blockchain.isValidChain(blockchain2.chain)).toBe(false);
     });
 
-    it("validate chain - invalid chain - corrupt non-genesis hash", () => {
+    test("validate chain - invalid chain - corrupt non-genesis hash", () => {
         blockchain2.addBlock("foo");
         blockchain2.chain[1].hash = "corrupt";
         expect(blockchain.isValidChain(blockchain2.chain)).toBe(false);
     });
 
-    it("replace blockchain - valid", () => {
+    test("replace blockchain - valid", () => {
         //node 2 got new block
         blockchain2.addBlock("new block");
 
@@ -65,7 +65,7 @@ describe('Blockchain', () => {
         expect(blockchain.chain).toEqual(blockchain2.chain);
     });
 
-    it("replace blockchain - invalid - new chain is too short", () => {
+    test("replace blockchain - invalid - new chain is too short", () => {
         //node 2 got new block
         blockchain2.addBlock("new block");
 
@@ -75,7 +75,7 @@ describe('Blockchain', () => {
         expect(blockchain.chain).not.toEqual(blockchain2.chain); 
     });
 
-    it("replace blockchain - invalid - corrupt data", () => {
+    test("replace blockchain - invalid - corrupt data", () => {
         //node 2 got new block
         blockchain2.addBlock("new block");
 
