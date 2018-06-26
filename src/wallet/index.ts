@@ -12,6 +12,14 @@ export default class Wallet {
         this.publicKey = this.keypair.getPublic().encode("hex");
     }
 
+    /**
+     * Signs the hash representation of some data.
+     * @param dataHash The hashed data.
+     */
+    sign(dataHash: string): string {
+        return this.keypair.sign(dataHash);
+    }
+
     toString(): string {
         return `Wallet -
             publicKey: ${this.publicKey.toString()}

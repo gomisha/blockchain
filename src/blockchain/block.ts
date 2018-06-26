@@ -1,4 +1,4 @@
-import * as crypto from "crypto-js";
+import ChainUtil from "../chain-util";
 import * as config from "../config";
 
 export default class Block {
@@ -49,7 +49,7 @@ export default class Block {
 	}
 
 	static generateHash(timestamp: number, lastHash: string, data: string, nonce: number, difficulty: number): string {
-		return crypto.SHA256(`${timestamp}${lastHash}${data}${nonce}${difficulty}`).toString();
+			return ChainUtil.genHash(`${timestamp}${lastHash}${data}${nonce}${difficulty}`);
 	}
 
 	/**
