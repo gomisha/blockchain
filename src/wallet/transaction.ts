@@ -1,15 +1,14 @@
 import ChainUtil from "../chain-util";
 import Wallet from ".";
-import Output from "./output";
+import TransactionItem from "./transaction-item";
 
 export default class Transaction {
     id: string;
-    input: string;
-    outputs: Output[];
+    input: TransactionItem;
+    outputs: TransactionItem[];
 
     constructor() {
         this.id = ChainUtil.genID();
-        this.input = "";
         this.outputs = [];
     }
 
@@ -19,10 +18,20 @@ export default class Transaction {
             throw new RangeError("Amount " + amount + " exceeds balance.");
         }
         transaction.outputs.push(...[
-            { amount: senderWallet.balance - amount, address: senderWallet.publicKey },
-            { amount,                                address: recipient }
+            { amount: senderWallet.balance - amount, address: senderWallet.publicKey, timestamp: Date.now() },
+            { amount,                                address: recipient,              timestamp: Date.now() }
         ]);
 
+        this.signTransaction(transaction, senderWallet);
+
         return transaction;
+    }
+
+    static signTransaction(transaction: Transaction, senderWallet: Wallet): void {
+        transaction.input = {
+            timestamp: Date.now(),
+            amount: senderWallet.balance,
+            address: senderWallet.publicKey
+        }
     }
 }
