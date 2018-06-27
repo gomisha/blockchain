@@ -1,4 +1,4 @@
-export default class TransactionItem {
+export default class TransactionInput {
     amount: number;
     address: string;
     timestamp: number;
