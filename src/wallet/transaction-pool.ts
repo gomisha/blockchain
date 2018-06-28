@@ -20,6 +20,9 @@ export default class TransactionPool {
             this.transactions.push(transaction);
             console.log("TxPool>added tx");
         }
+    }
 
+    existingTransaction(address: string): Transaction {
+        return <Transaction> this.transactions.find(tx => tx.txInput.address === address);
     }
 }
