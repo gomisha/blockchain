@@ -56,6 +56,7 @@ export default class Transaction {
      * @param senderWallet Wallet that will be updated.
      * @param recipient Address of additional recipient.
      * @param amountToTx Amount to transfer to recipient.
+     * @returns The updated transaction.
      */
     update(senderWallet: Wallet, recipient: string, amountToTx: number): Transaction {
         //find the output we need to update
