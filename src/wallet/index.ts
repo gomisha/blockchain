@@ -27,7 +27,7 @@ export default class Wallet {
         }
 
         //check if transaction exists
-        let foundTx: Transaction = tp.existingTransaction(this.publicKey);
+        let foundTx: Transaction = tp.findTransaction(this.publicKey);
 
         if(foundTx) {
             foundTx.update(this, recipient, sendAmount);

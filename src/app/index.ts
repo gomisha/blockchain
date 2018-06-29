@@ -22,7 +22,6 @@ app.get("/blocks", (request, response) => {
     response.json({blockchain: blockchain.chain});
 });
 
-
 app.get("/public-key", (request, response) => {
     response.json({publicKey: wallet.publicKey});
 })

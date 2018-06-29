@@ -29,6 +29,12 @@ export default class ChainUtil {
      * @param expectedDataHash Expected hash if signature is successfully verified.
      */
     static verifySignature(publicKey: string, signature: string, expectedDataHash: string): boolean {
-        return ec.keyFromPublic(publicKey, 'hex').verify(expectedDataHash, signature);
+        try {
+            return ec.keyFromPublic(publicKey, 'hex').verify(expectedDataHash, signature);
+        }
+        catch(Error) {
+            console.log("signature verification error for public key: " + publicKey + "; error message: " + Error.message);
+            return false;
+        }
     }
 }
