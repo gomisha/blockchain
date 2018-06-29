@@ -13,7 +13,7 @@ const app = express();
 const blockchain: Blockchain = new Blockchain();
 const wallet: Wallet = new Wallet();
 const tp: TransactionPool = new TransactionPool();
-const p2pServer: P2pServer = new P2pServer(blockchain);
+const p2pServer: P2pServer = new P2pServer(blockchain, tp);
 
 app.use(bodyParser.json());
 
@@ -27,12 +27,12 @@ app.get("/transactions", (request, response) => {
     response.json(tp.transactions);
 })
 
-//create a transaction with user's wallet
+//create a transaction with user's wallet and broadcast it to other nodes
 app.post("/transact", (request, response) => {
     let recipient: string = request.body.recipient;
     let amount:number = request.body.amount;
     let transaction = wallet.createOrUpdateTransaction(recipient, amount, tp);
-
+    p2pServer.broadcastTx(transaction);
     response.redirect("/transactions");
 })
 

@@ -16,10 +16,8 @@ export default class TransactionPool {
         }
         //transaction doesn't exist already in the pool, so will be added
         else {
-            console.log("TxPool>adding tx");
             this.transactions.push(transaction);
-            console.log("TxPool>added tx");
-        }
+       }
     }
 
     existingTransaction(address: string): Transaction {
