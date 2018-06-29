@@ -19,12 +19,17 @@ app.use(bodyParser.json());
 
 //view all blocks on blockchain
 app.get("/blocks", (request, response) => {
-    response.json(blockchain.chain);
+    response.json({blockchain: blockchain.chain});
 });
+
+
+app.get("/public-key", (request, response) => {
+    response.json({publicKey: wallet.publicKey});
+})
 
 //view all transactions
 app.get("/transactions", (request, response) => {
-    response.json(tp.transactions);
+    response.json({transactions: tp.transactions});
 })
 
 //create a transaction with user's wallet and broadcast it to other nodes
