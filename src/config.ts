@@ -1,3 +1,5 @@
+export const BLOCKCHAIN_WALLET_ADDRESS = "blockchain-wallet";
+
 export const DIFFICULTY: number = 3;
 
 //in milliseconds

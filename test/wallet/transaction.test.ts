@@ -2,7 +2,7 @@ import Transaction from "../../src/wallet/transaction";
 import TransactionOutput from "../../src/wallet/transaction-output";
 import TransactionInput from "../../src/wallet/transaction-input";
 import Wallet from "../../src/wallet";
-import { MINING_REWARD } from "../../src/config";
+import * as config from "../../src/config";
 
 describe("Transaction", () => {
     let transaction: Transaction, senderWallet: Wallet, recipient: string, firstTxAmount: number;
@@ -103,7 +103,13 @@ describe("Transaction", () => {
         test("reward the miner's wallet", () => {
             let txOutput = <TransactionOutput> transaction.txOutputs.find(txOutput => 
                 txOutput.address === senderWallet.publicKey);
-            expect(txOutput.amount).toEqual(MINING_REWARD);
+            expect(txOutput.amount).toEqual(config.MINING_REWARD);
+
+            //blockchain wallet should have special address
+            expect(Wallet.blockchainWallet().address).toEqual(config.BLOCKCHAIN_WALLET_ADDRESS);
+
+            //sender wallet should have undefined address
+            expect(senderWallet.address).toBeUndefined();
         })
     })
 })

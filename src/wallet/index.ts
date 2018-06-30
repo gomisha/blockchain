@@ -18,7 +18,7 @@ export default class Wallet {
     static blockchainWallet():Wallet {
         const blockchainWallet:Wallet = new this();
 
-        blockchainWallet.address = "blockchain-wallet";
+        blockchainWallet.address = config.BLOCKCHAIN_WALLET_ADDRESS;
         return blockchainWallet;
     }
 
