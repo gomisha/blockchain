@@ -49,7 +49,6 @@ export default class TransactionPool {
             }
             validTransactions.push(tx);
         });
-
         return validTransactions;
     }
 }

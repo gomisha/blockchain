@@ -2,6 +2,7 @@ import ChainUtil from "../chain-util";
 import Wallet from ".";
 import TransactionInput from "./transaction-input";
 import TransactionOutput from "./transaction-output";
+import { MINING_REWARD } from "../config";
 
 export default class Transaction {
     id: string;
@@ -13,19 +14,41 @@ export default class Transaction {
         this.txOutputs = [];
     }
 
-    static newTransaction(senderWallet: Wallet, recipient: string, amount: number):Transaction {
+    /**
+     * Helper function used to generate new and reward transactions.
+     */
+    static transactionsWithOutput(senderWallet:Wallet, txOutputs:TransactionOutput []):Transaction {
         const transaction: Transaction = new this();
+        transaction.txOutputs.push(...txOutputs);
+
+        Transaction.signTransaction(transaction, senderWallet);
+        return transaction;
+    }
+
+    static newTransaction(senderWallet: Wallet, recipient: string, amount: number):Transaction {
         if(amount > senderWallet.balance) {
             throw new RangeError("Amount " + amount + " exceeds balance.");
         }
-        transaction.txOutputs.push(...[
+
+        let txOutputs: TransactionOutput [] = [
             { amount: senderWallet.balance - amount, address: senderWallet.publicKey },
             { amount,                                address: recipient }
-        ]);
+        ];
 
-        Transaction.signTransaction(transaction, senderWallet);
+        return Transaction.transactionsWithOutput(senderWallet, txOutputs);
+    }
 
-        return transaction;
+    /**
+     * Generates reward transaction for miners.
+     * @param minerWallet Miner's wallet.
+     * @param blockchainWallet Blockchain's wallet.
+     * @returns The reward transaction for the miner.
+     */
+    static rewardTransaction(minerWallet:Wallet, blockchainWallet:Wallet):Transaction {
+        let txOutputs: TransactionOutput [] = [
+            { amount: MINING_REWARD, address: minerWallet.publicKey}
+        ];
+        return Transaction.transactionsWithOutput(blockchainWallet, txOutputs);
     }
 
     /**
@@ -33,7 +56,7 @@ export default class Transaction {
      * @param transaction Transaction to sign. Only the outputItems will be signed.
      * @param senderWallet Wallet to use for signing.
      */
-    static signTransaction(transaction: Transaction, senderWallet: Wallet): void {
+    static signTransaction(transaction: Transaction, senderWallet: Wallet):void {
         transaction.txInput = {
             timestamp: Date.now(),
             amount: senderWallet.balance,

@@ -1,6 +1,8 @@
 import Transaction from "../../src/wallet/transaction";
+import TransactionOutput from "../../src/wallet/transaction-output";
 import TransactionInput from "../../src/wallet/transaction-input";
 import Wallet from "../../src/wallet";
+import { MINING_REWARD } from "../../src/config";
 
 describe("Transaction", () => {
     let transaction: Transaction, senderWallet: Wallet, recipient: string, firstTxAmount: number;
@@ -92,5 +94,16 @@ describe("Transaction", () => {
             }).toThrowError('exceeds');
         })
     });
-})
 
+    describe("creating reward transaction", () => {
+        beforeEach(() => {
+            transaction = Transaction.rewardTransaction(senderWallet, Wallet.blockchainWallet());
+        })
+
+        test("reward the miner's wallet", () => {
+            let txOutput = <TransactionOutput> transaction.txOutputs.find(txOutput => 
+                txOutput.address === senderWallet.publicKey);
+            expect(txOutput.amount).toEqual(MINING_REWARD);
+        })
+    })
+})

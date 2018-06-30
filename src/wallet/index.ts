@@ -7,11 +7,19 @@ export default class Wallet {
     balance: number;
     keypair: any;
     publicKey: any;
+    address: string;
     
     constructor() {
         this.balance = config.INITIAL_BALANCE;
         this.keypair = ChainUtil.genKeyPair();
         this.publicKey = this.keypair.getPublic().encode("hex");
+    }
+
+    static blockchainWallet():Wallet {
+        const blockchainWallet:Wallet = new this();
+
+        blockchainWallet.address = "blockchain-wallet";
+        return blockchainWallet;
     }
 
     /**
