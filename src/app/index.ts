@@ -6,6 +6,7 @@ import P2pServer from "./p2p-server";
 import Wallet from "../wallet";
 import TransactionPool from "../wallet/transaction-pool";
 import Transaction from "../wallet/transaction";
+import Miner from "./miner";
 
 const HTTP_PORT: string = process.env.HTTP_PORT || "3001";
 
@@ -14,6 +15,7 @@ const blockchain: Blockchain = new Blockchain();
 const wallet: Wallet = new Wallet();
 const tp: TransactionPool = new TransactionPool();
 const p2pServer: P2pServer = new P2pServer(blockchain, tp);
+const miner = new Miner(blockchain, tp, wallet, p2pServer);
 
 app.use(bodyParser.json());
 

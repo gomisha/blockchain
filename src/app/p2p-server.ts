@@ -13,7 +13,8 @@ const peers: string[] = process.env.PEERS ? process.env.PEERS.split(",") : [];
 //need to differentiate between message types for messageHandler()
 const MESSAGE_TYPES = {
     chain: "CHAIN",
-    transaction: "TRANSACTION"
+    transaction: "TRANSACTION",
+    clear_transactions: "CLEAR_TRANSACTIONS"
 };
 
 export default class P2pServer {
@@ -70,6 +71,9 @@ export default class P2pServer {
                 case MESSAGE_TYPES.transaction:
                     this.tp.updateOrAddTransaction(messageData.transaction);
                     break;
+                case MESSAGE_TYPES.clear_transactions:
+                    this.tp.clear();
+                    break;
                 default:
                     throw new Error("Undefined or improper message type.");
             }
@@ -114,6 +118,14 @@ export default class P2pServer {
     broadcastTx(transaction: Transaction): void {
         this.webSockets.forEach(webSocket => {
             this.sendTransaction(webSocket, transaction);
+        })
+    }
+
+    broadcastClearTxs(): void {
+        this.webSockets.forEach(webSocket => {
+            webSocket.send(JSON.stringify({
+                type: MESSAGE_TYPES.clear_transactions
+            }));           
         })
     }
 }
