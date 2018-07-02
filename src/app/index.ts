@@ -2,10 +2,10 @@ import * as express from "express";
 import * as bodyParser from "body-parser";
 
 import Blockchain from "../blockchain";
+import Block from "../blockchain/block";
 import P2pServer from "./p2p-server";
 import Wallet from "../wallet";
 import TransactionPool from "../wallet/transaction-pool";
-import Transaction from "../wallet/transaction";
 import Miner from "./miner";
 
 const HTTP_PORT: string = process.env.HTTP_PORT || "3001";
@@ -26,12 +26,12 @@ app.get("/blocks", (request, response) => {
 
 app.get("/public-key", (request, response) => {
     response.json({publicKey: wallet.publicKey});
-})
+});
 
 //view all transactions
 app.get("/transactions", (request, response) => {
     response.json({transactions: tp.transactions});
-})
+});
 
 //create a transaction with user's wallet and broadcast it to other nodes
 app.post("/transact", (request, response) => {
@@ -40,7 +40,13 @@ app.post("/transact", (request, response) => {
     let transaction = wallet.createOrUpdateTransaction(recipient, amount, tp);
     p2pServer.broadcastTx(transaction);
     response.redirect("/transactions");
-})
+});
+
+app.get("/mine-transactions", (request, response) => {
+    const block: Block = miner.mine();
+    console.log("New block added: " + block.toString());
+    response.redirect("/blocks");
+});
 
 //add new block to blockchain
 app.post("/mine", (request, response) => {

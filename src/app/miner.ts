@@ -19,10 +19,11 @@ export default class Miner {
     }
 
     /**
-     * - Validates transactions
-     * - Rewards miner
-     * - Creates new block consisting of valid transactions
-     * - Synchronizes chains in the P2P Server
+     * Mines a new transaction on the blockchain by:
+     * - Validating transactions on the transaction pool
+     * - Rewarding the miner
+     * - Creating new block on the blockchain consisting of the newly validated transactions
+     * - Synchronizes blockchains between all other peers
      * - Clears transaction pool
      * - Broadcasts to every miner to clear their transaction pool
      */
