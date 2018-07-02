@@ -7,6 +7,13 @@ export default class TransactionPool {
         this.transactions = [];
     }
 
+    /**
+     * Clears transaction pool to be empty.
+     */
+    clear(): void {
+        this.transactions = [];
+    }
+
     updateOrAddTransaction(transaction: Transaction): void {
         let foundTx: Transaction = <Transaction> this.transactions.find(tx => tx.id === transaction.id);
 
@@ -26,7 +33,7 @@ export default class TransactionPool {
 
     /**
      * Validates transactions by:
-     * - checking that the TransactionInput's starting balance + all subsequent TransactionOutputs = current balance
+     * - checking that the TransactionInput's starting balance + all subsequent TransactionOutput amounts = current balance
      * - verify signature of every transaction
      * @returns Array of valid transactions.
      */

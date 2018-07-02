@@ -102,7 +102,7 @@ export default class P2pServer {
     /**
      * Send current blockchain to every other node so they can synchronize with it.
      */
-    syncChain(): void {
+    syncChains(): void {
         this.webSockets.forEach(webSocket => {
             this.sendChain(webSocket);
         })

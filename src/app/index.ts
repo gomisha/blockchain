@@ -46,7 +46,7 @@ app.post("/mine", (request, response) => {
     console.log("New block added: " + block.toString());
 
     //update other nodes as soon as new block mined
-    p2pServer.syncChain();
+    p2pServer.syncChains();
 
     //show updated chain with new block
     response.redirect("/blocks");

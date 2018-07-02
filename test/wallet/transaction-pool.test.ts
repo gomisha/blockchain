@@ -37,6 +37,11 @@ describe("TransactionPool", () => {
         expect(updatedTxString).toEqual(foundTxString);
     })
 
+    test("clears transactions", () => {
+        tp.clear();
+        expect(tp.transactions).toEqual([]);
+    });
+
     describe("mixing valid and corrupt transactoins - check that only valid transactions are mined", () => {
         let validTransactions : Transaction [];
 
