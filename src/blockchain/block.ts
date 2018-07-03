@@ -1,20 +1,21 @@
 import ChainUtil from "../chain-util";
 import * as config from "../config";
+import Transaction from "../wallet/transaction"
+import TransactionInput from "../wallet/transaction-input";
 
 export default class Block {
 	timestamp: number;
 	lastHash: string;
 	hash: string;
-	data: string;
+	transactions: Transaction []; //transactions are the data in each block
 	nonce: number;
 	difficulty: number;
 	
-
-	constructor(timestamp: number, lastHash: string, hash: string, data: string, nonce:number, difficulty: number) {
+	constructor(timestamp: number, lastHash: string, hash: string, transactions: Transaction [], nonce:number, difficulty: number) {
 		this.timestamp = timestamp;
 		this.lastHash = lastHash;
 		this.hash = hash;
-		this.data = data;
+		this.transactions = transactions;
 		this.nonce = nonce;
 		this.difficulty = difficulty;
 	}
@@ -23,7 +24,11 @@ export default class Block {
 	 * First block of the blockchain.
 	 */
 	static getGenesisBlock(): Block {
-		return new this(0, '-----', 'f1r5t-ha4h', '', 0, config.DIFFICULTY);
+		let genesisTransaction: Transaction = new Transaction();
+		genesisTransaction.txInput = new TransactionInput(0, "genesis-transaction-input");
+		genesisTransaction.id = "genesis-transaction-id";
+
+		return new this(0, '-----', 'f1r5t-ha4h', [genesisTransaction], 0, config.DIFFICULTY);
 	}
 
 	/**
@@ -31,7 +36,7 @@ export default class Block {
 	 * @param lastBlock Link to the previous block for storing its hash.
 	 * @param data Data to store of the new block.
 	 */
-	static mineNewBlock(lastBlock: Block, data: string): Block {
+	static mineNewBlock(lastBlock: Block, data: any): Block {
 		let timestamp: number;
 		const lastHash: string = lastBlock.hash;
 		let nonce:number = 0;
@@ -48,7 +53,7 @@ export default class Block {
 		return new this(timestamp, lastHash, hash, data, nonce, difficulty)
 	}
 
-	static generateHash(timestamp: number, lastHash: string, data: string, nonce: number, difficulty: number): string {
+	static generateHash(timestamp: number, lastHash: string, data: any, nonce: number, difficulty: number): string {
 			return ChainUtil.genHash(`${timestamp}${lastHash}${data}${nonce}${difficulty}`);
 	}
 
@@ -57,8 +62,8 @@ export default class Block {
 	 * @param block The block to generate hash from.
 	 */
 	static generateHash2(block: Block): string {
-		const { timestamp, lastHash, data, nonce, difficulty} = block;
-		return Block.generateHash(timestamp, lastHash, data, nonce, difficulty);
+		const { timestamp, lastHash, transactions, nonce, difficulty} = block;
+		return Block.generateHash(timestamp, lastHash, transactions, nonce, difficulty);
 	}
 
 	/**
@@ -80,7 +85,7 @@ export default class Block {
 			Timestamp  : ${this.timestamp}
 			Last Hash  : ${this.lastHash.substring(0,10)}
 			Hash       : ${this.hash.substring(0,10)}
-			Data       : ${this.data}
+			Data       : ${this.transactions}
 			Nonce      : ${this.nonce}
 			Difficulty : ${this.difficulty}
 		`;

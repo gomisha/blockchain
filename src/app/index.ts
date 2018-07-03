@@ -37,7 +37,7 @@ app.get("/transactions", (request, response) => {
 app.post("/transact", (request, response) => {
     let recipient: string = request.body.recipient;
     let amount:number = request.body.amount;
-    let transaction = wallet.createOrUpdateTransaction(recipient, amount, tp);
+    let transaction = wallet.createOrUpdateTransaction(recipient, amount, blockchain, tp);
     p2pServer.broadcastTx(transaction);
     response.redirect("/transactions");
 });

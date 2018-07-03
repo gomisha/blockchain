@@ -1,5 +1,6 @@
 import Blockchain from "../../src/blockchain";
 import Block from "../../src/blockchain/block";
+import Transaction from "../../src/wallet/transaction";
 
 describe('Blockchain', () => {
     let blockchain: Blockchain;
@@ -19,9 +20,9 @@ describe('Blockchain', () => {
         let newBlock = blockchain.addBlock(data);
 
         //test for data equality
-        expect(data).toEqual(blockchain.chain[1].data);
-        expect(data).toEqual(blockchain.chain[blockchain.chain.length-1].data);
-        expect(newBlock.data).toEqual(data);
+        expect(data).toEqual(blockchain.chain[1].transactions);
+        expect(data).toEqual(blockchain.chain[blockchain.chain.length-1].transactions);
+        expect(newBlock.transactions).toEqual(data);
 
         //test for Block equality
         expect(newBlock).toEqual(blockchain.chain[1]);
@@ -34,7 +35,7 @@ describe('Blockchain', () => {
     });
 
     test("validate chain - invalid chain - corrupt genesis data", () => {
-        blockchain2.chain[0].data = "corrupt";
+        blockchain2.chain[0].transactions = [new Transaction()];
         expect(blockchain.isValidChain(blockchain2.chain)).toBe(false);
     });
 
@@ -45,7 +46,7 @@ describe('Blockchain', () => {
 
     test("validate chain - invalid chain - corrupt non-genesis data", () => {
         blockchain2.addBlock("foo");
-        blockchain2.chain[1].data = "corrupt";
+        blockchain2.chain[1].transactions = [new Transaction()];
         expect(blockchain.isValidChain(blockchain2.chain)).toBe(false);
     });
 
@@ -79,7 +80,7 @@ describe('Blockchain', () => {
         //node 2 got new block
         blockchain2.addBlock("new block");
 
-        blockchain2.chain[1].data = "corrupted";
+        blockchain2.chain[1].transactions = [new Transaction()];
 
         //node 1 should NOT get updated - node 2's blockchain is corrupted
         expect(blockchain.replaceChain(blockchain2)).toBe(false);

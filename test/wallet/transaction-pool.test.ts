@@ -1,16 +1,18 @@
 import TransactionPool from "../../src/wallet/transaction-pool";
 import Transaction from "../../src/wallet/transaction";
 import Wallet from "../../src/wallet";
+import Blockchain from "../../src/blockchain";
 
 describe("TransactionPool", () => {
-    let tp: TransactionPool, wallet: Wallet, transaction: Transaction;
+    let tp: TransactionPool, wallet: Wallet, transaction: Transaction, blockchain: Blockchain;
     const RECIPIENT_ADDRESS: string = "r4nd-4ddr355";
 
     beforeEach(() => {
         tp = new TransactionPool();
         wallet = new Wallet();
-        transaction = wallet.createOrUpdateTransaction(RECIPIENT_ADDRESS, 30, tp);
-    })
+        blockchain = new Blockchain();
+        transaction = wallet.createOrUpdateTransaction(RECIPIENT_ADDRESS, 30, blockchain, tp);
+    });
 
     test("adds transaction to the pool - transaction doesn't exist in pool", () => {
         const foundTransaction = <Transaction> tp.transactions.find(
@@ -18,7 +20,7 @@ describe("TransactionPool", () => {
         const transactions: string = JSON.stringify(tp.transactions);
 
         expect(foundTransaction).toEqual(transaction);
-    })
+    });
 
     test("updates transaction in the pool - transaction exists in pool", () => {
         const oldTxString: string = JSON.stringify(transaction);
@@ -35,7 +37,7 @@ describe("TransactionPool", () => {
 
         expect(oldTxString).not.toEqual(foundTxString);
         expect(updatedTxString).toEqual(foundTxString);
-    })
+    });
 
     test("clears transactions", () => {
         tp.clear();
@@ -51,7 +53,7 @@ describe("TransactionPool", () => {
 
             for(let i=0; i<10; i++) {
                 wallet = new Wallet();
-                transaction = wallet.createOrUpdateTransaction(RECIPIENT_ADDRESS, 50, tp);
+                transaction = wallet.createOrUpdateTransaction(RECIPIENT_ADDRESS, 50, blockchain, tp);
                 if(i%2 == 0) {
                     transaction.txInput.amount = 5000; //corrupt tx half the time
                 }
@@ -61,13 +63,13 @@ describe("TransactionPool", () => {
                     validTransactions.push(transaction); //create expected valid transactions
                 }
             }
-        })
+        });
         test("all transactions in pool (valid, invalid) are NOT equal to just valid transactions", () =>{
             expect(tp.transactions).not.toEqual(validTransactions);
-        })
+        });
 
         test("valid transactions found", () => {
             expect(tp.validTransactions()).toEqual(validTransactions);
-        })
+        });
     })
 });
