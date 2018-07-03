@@ -1,6 +1,5 @@
 import * as WebSocket from "ws";
 import Blockchain from "../blockchain";
-import Block from "../blockchain/block";
 import Transaction from "../wallet/transaction";
 import TransactionPool from "../wallet/transaction-pool";
 
@@ -82,17 +81,19 @@ export default class P2pServer {
 
     /**
      * Convenience method for sending blockchain on a socket.
+     * Specifies that message contains blockchain by setting "type" parameter.
      * @param webSocket The WebScoket to send the blockchain on.
      */
     sendChain(webSocket: WebSocket): void {
         webSocket.send(JSON.stringify({ 
             type:MESSAGE_TYPES.chain, 
-            chain: this.blockchain 
+            chain: this.blockchain.chain
         }));
     }
 
     /**
      * Convenience method for sending transactions on a socket.
+     * Specifies that message contains transaction by setting "type" parameter.
      * @param webSocket The websocket to send transaction on.
      * @param transaction The transaction to send.
      */

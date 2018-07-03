@@ -27,7 +27,7 @@ export default class Wallet {
     calculateBalance(blockchain: Blockchain): number {
         let balance = this.balance;
         const transactions: Transaction [] = [];
-        blockchain.chain.forEach(block => block.transactions.forEach(transaction => {
+        blockchain.chain.forEach(block => block.data.forEach(transaction  => {
             transactions.push(transaction);
         }));
 

@@ -1,6 +1,7 @@
 import * as express from "express";
 import * as bodyParser from "body-parser";
 
+import * as config from "../config";
 import Blockchain from "../blockchain";
 import Block from "../blockchain/block";
 import P2pServer from "./p2p-server";
@@ -20,36 +21,36 @@ const miner = new Miner(blockchain, tp, wallet, p2pServer);
 app.use(bodyParser.json());
 
 //view all blocks on blockchain
-app.get("/blocks", (request, response) => {
+app.get(config.ENDPOINT_GET_BLOCKS, (request, response) => {
     response.json({blockchain: blockchain.chain});
 });
 
-app.get("/public-key", (request, response) => {
+app.get(config.ENDPOINT_GET_PUBLIC_KEY, (request, response) => {    
     response.json({publicKey: wallet.publicKey});
 });
 
 //view all transactions
-app.get("/transactions", (request, response) => {
+app.get(config.ENDPOINT_GET_TRANSACTIONS, (request, response) => {
     response.json({transactions: tp.transactions});
 });
 
 //create a transaction with user's wallet and broadcast it to other nodes
-app.post("/transact", (request, response) => {
+app.post(config.ENDPOINT_POST_TRANSACT, (request, response) => {
     let recipient: string = request.body.recipient;
     let amount:number = request.body.amount;
     let transaction = wallet.createOrUpdateTransaction(recipient, amount, blockchain, tp);
     p2pServer.broadcastTx(transaction);
-    response.redirect("/transactions");
+    response.redirect(config.ENDPOINT_GET_TRANSACTIONS);
 });
 
-app.get("/mine-transactions", (request, response) => {
+app.get(config.ENDPOINT_GET_MINE_TRANSACTIONS, (request, response) => {
     const block: Block = miner.mine();
     console.log("New block added: " + block.toString());
-    response.redirect("/blocks");
+    response.redirect(config.ENDPOINT_GET_BLOCKS);
 });
 
 //add new block to blockchain
-app.post("/mine", (request, response) => {
+app.post(config.ENDPOINT_POST_MINE, (request, response) => {
     const block = blockchain.addBlock(request.body.data);
     console.log("New block added: " + block.toString());
 
@@ -57,7 +58,7 @@ app.post("/mine", (request, response) => {
     p2pServer.syncChains();
 
     //show updated chain with new block
-    response.redirect("/blocks");
+    response.redirect(config.ENDPOINT_GET_BLOCKS);
 });
 
 app.listen(HTTP_PORT, () => {

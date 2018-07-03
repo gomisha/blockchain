@@ -10,7 +10,7 @@ describe('Block', () => {
 	});
 	
 	test('sets data to match input', () => {
-		expect(block.transactions).toEqual(data);
+		expect(block.data).toEqual(data);
 	});
 	
 	test('sets last hash to match hash of last block', () => {
