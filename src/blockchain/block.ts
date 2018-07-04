@@ -73,6 +73,8 @@ export default class Block {
 		let { difficulty } = lastBlock;
 		difficulty = lastBlock.timestamp + config.MINE_RATE > newBlockTime ? ++difficulty  : --difficulty;
 
+		if(difficulty < 1) difficulty = 1;
+
 		return difficulty;
 	}
 
