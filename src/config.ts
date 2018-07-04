@@ -14,6 +14,7 @@ export const MINING_REWARD: number = 50;
 export const ENDPOINT_POST_MINE = "/mine";
 export const ENDPOINT_POST_TRANSACTIONS = "/transact";
 
+export const ENDPOINT_GET_BALANCE = "/balance";
 export const ENDPOINT_GET_BLOCKS = "/blocks";
 export const ENDPOINT_GET_MINE_TRANSACTIONS = "/mine-transactions"
 export const ENDPOINT_GET_PUBLIC_KEY = "/public-key";

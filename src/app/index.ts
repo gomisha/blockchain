@@ -20,6 +20,11 @@ const miner = new Miner(blockchain, tp, wallet, p2pServer);
 
 app.use(bodyParser.json());
 
+//view balance
+app.get(config.ENDPOINT_GET_BALANCE, (request, response) => {
+    response.json({balance: wallet.calculateBalance(blockchain)});
+});
+
 //view all blocks on blockchain
 app.get(config.ENDPOINT_GET_BLOCKS, (request, response) => {
     response.json({blockchain: blockchain.chain});
