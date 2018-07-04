@@ -14,8 +14,15 @@ export default class TransactionPool {
         this.transactions = [];
     }
 
+    /**
+     * Looks for that transaction in the Transaction Pool and if it's there, replaces it
+     * with the passed in transaction. If it's not in the pool, adds it to the pool.
+     * Uses transaction's ID field to look for transactions in the pool.
+     * @param transaction Transaction to add to pool or replace existing transaction in the pool.
+     */
     updateOrAddTransaction(transaction: Transaction): void {
-        let foundTx: Transaction = <Transaction> this.transactions.find(tx => tx.id === transaction.id);
+        let foundTx: Transaction = <Transaction> this.transactions.find(
+            tx => tx.id === transaction.id);
 
         //transaction already exists so it needs to replaced
         if(foundTx) {
@@ -28,7 +35,8 @@ export default class TransactionPool {
     }
 
     findTransaction(address: string): Transaction {
-        return <Transaction> this.transactions.find(tx => tx.txInput.address === address);
+        return <Transaction> this.transactions.find(
+            tx => tx.txInput.address === address);
     }
 
     /**

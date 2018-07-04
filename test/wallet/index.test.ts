@@ -54,19 +54,20 @@ describe("Wallet", () => {
         let addBalance:number, repeadAdd:number, senderWallet: Wallet;
 
         beforeEach(() => {
+            tp.clear(); //clear any previous transactions
             senderWallet = new Wallet();
             addBalance = 100;
             repeadAdd = 3;
 
             for(let i=0; i<repeadAdd; i++) {
-                let newTx = senderWallet.createOrUpdateTransaction(wallet.publicKey, addBalance, blockchain, tp);
+                senderWallet.createOrUpdateTransaction(wallet.publicKey, addBalance, blockchain, tp);
             }
             blockchain.addBlock(tp.transactions);
         });
 
         test("calculates balance for blockchain transactions matching the recipient", () => {
             //subtract initial sendAmount from higher level beforeEach()
-            const expectedBalance: number = INITIAL_BALANCE + (addBalance * repeadAdd) - sendAmount;
+            const expectedBalance = INITIAL_BALANCE + (addBalance * repeadAdd);
             expect(wallet.calculateBalance(blockchain)).toEqual(expectedBalance);
         });
 

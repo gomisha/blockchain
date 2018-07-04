@@ -74,7 +74,7 @@ export default class P2pServer {
                     this.tp.clear();
                     break;
                 default:
-                    throw new Error("Undefined or improper message type.");
+                    throw new Error("Undefined message type: " + messageData.type);
             }
         });
     }

@@ -25,6 +25,7 @@ app.get(config.ENDPOINT_GET_BLOCKS, (request, response) => {
     response.json({blockchain: blockchain.chain});
 });
 
+//show wallet's public key
 app.get(config.ENDPOINT_GET_PUBLIC_KEY, (request, response) => {    
     response.json({publicKey: wallet.publicKey});
 });
@@ -35,7 +36,7 @@ app.get(config.ENDPOINT_GET_TRANSACTIONS, (request, response) => {
 });
 
 //create a transaction with user's wallet and broadcast it to other nodes
-app.post(config.ENDPOINT_POST_TRANSACT, (request, response) => {
+app.post(config.ENDPOINT_POST_TRANSACTIONS, (request, response) => {
     let recipient: string = request.body.recipient;
     let amount:number = request.body.amount;
     let transaction = wallet.createOrUpdateTransaction(recipient, amount, blockchain, tp);
@@ -43,13 +44,14 @@ app.post(config.ENDPOINT_POST_TRANSACT, (request, response) => {
     response.redirect(config.ENDPOINT_GET_TRANSACTIONS);
 });
 
+//mines new block with transaction data
 app.get(config.ENDPOINT_GET_MINE_TRANSACTIONS, (request, response) => {
     const block: Block = miner.mine();
     console.log("New block added: " + block.toString());
     response.redirect(config.ENDPOINT_GET_BLOCKS);
 });
 
-//add new block to blockchain
+//adds new block to blockchain - generic mine endpoint for mining any data
 app.post(config.ENDPOINT_POST_MINE, (request, response) => {
     const block = blockchain.addBlock(request.body.data);
     console.log("New block added: " + block.toString());

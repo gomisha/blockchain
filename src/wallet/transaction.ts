@@ -25,14 +25,20 @@ export default class Transaction {
         return transaction;
     }
 
-    static newTransaction(senderWallet: Wallet, recipient: string, amount: number):Transaction {
-        if(amount > senderWallet.balance) {
-            throw new RangeError("Amount " + amount + " exceeds balance.");
+    /**
+     * Creates a new transaction by setting TransactionOutput objects. 
+     * @param senderWallet Sender's wallet.
+     * @param recipient Recipient's wallet address (public key)
+     * @param amountToSend Amount to send to recpient. If this is too high (exceeds wallet balance), throws an error.
+     */
+    static newTransaction(senderWallet: Wallet, recipient: string, amountToSend: number):Transaction {
+        if(amountToSend > senderWallet.balance) {
+            throw new RangeError("Amount " + amountToSend + " exceeds balance.");
         }
 
         let txOutputs: TransactionOutput [] = [
-            { amount: senderWallet.balance - amount, address: senderWallet.publicKey },
-            { amount,                                address: recipient }
+            { amount: senderWallet.balance - amountToSend, address: senderWallet.publicKey },
+            { amount: amountToSend,                        address: recipient              }
         ];
 
         return Transaction.transactionsWithOutput(senderWallet, txOutputs);
@@ -44,7 +50,7 @@ export default class Transaction {
      * @param blockchainWallet Blockchain's wallet.
      * @returns The reward transaction for the miner.
      */
-    static rewardTransaction(minerWallet:Wallet, blockchainWallet:Wallet):Transaction {
+    static rewardTransaction(minerWallet:Wallet, blockchainWallet:Wallet): Transaction {
         let txOutputs: TransactionOutput [] = [
             { amount: MINING_REWARD, address: minerWallet.publicKey}
         ];
@@ -52,11 +58,12 @@ export default class Transaction {
     }
 
     /**
-     * Signs transaction.
+     * Used by sender - signs transaction and generates a TransactionInput object.
+     * The signature is based on the hash of the TransactionOutput array.
      * @param transaction Transaction to sign. Only the outputItems will be signed.
      * @param senderWallet Wallet to use for signing.
      */
-    static signTransaction(transaction: Transaction, senderWallet: Wallet):void {
+    static signTransaction(transaction: Transaction, senderWallet: Wallet): void {
         transaction.txInput = {
             timestamp: Date.now(),
             amount: senderWallet.balance,
@@ -65,6 +72,10 @@ export default class Transaction {
         };
     }
 
+    /**
+     * Used by receiver - verifies transaction.
+     * @param transaction Transaction to verify, based on its signature, hash and TransactionOutput objects.
+     */
     static verifyTransaction(transaction: Transaction): boolean {
         return ChainUtil.verifySignature(
             transaction.txInput.address, 
@@ -78,11 +89,11 @@ export default class Transaction {
      * TransactionOutput objects.
      * @param senderWallet Wallet that will be updated.
      * @param recipient Address of additional recipient.
-     * @param amountToTx Amount to transfer to recipient.
+     * @param amountToTx Amount to transfer to new recipient. Throws an error if it exceeds balance.
      * @returns The updated transaction.
      */
     update(senderWallet: Wallet, recipient: string, amountToTx: number): Transaction {
-        //find the output we need to update
+        //find the TransactionOutput we need to update
         const senderTxOutput = <TransactionOutput> this.txOutputs.find(
             txOutput => txOutput.address === senderWallet.publicKey);
 

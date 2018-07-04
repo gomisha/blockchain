@@ -3,6 +3,7 @@ import ChainUtil from "../chain-util";
 import TransactionPool from "./transaction-pool";
 import Transaction from "./transaction";
 import Blockchain from "../blockchain";
+import Block from "../blockchain/block";
 import TransactionOutput from "./transaction-output";
 
 export default class Wallet {
@@ -10,6 +11,7 @@ export default class Wallet {
     keypair: any;
     publicKey: any;
     address: string;
+    static bcWallet: Wallet;
     
     constructor() {
         this.balance = config.INITIAL_BALANCE;
@@ -17,31 +19,47 @@ export default class Wallet {
         this.publicKey = this.keypair.getPublic().encode("hex");
     }
 
-    static blockchainWallet():Wallet {
-        const blockchainWallet:Wallet = new this();
-
-        blockchainWallet.address = config.BLOCKCHAIN_WALLET_ADDRESS;
-        return blockchainWallet;
+    /**
+     * Uses Singleton pattern to retrieve the special Blockchain Wallet.
+     * Creates it only one time.
+     */
+    static getBlockchainWallet():Wallet {
+        if(!Wallet.bcWallet) {
+            Wallet.bcWallet = new this();
+            Wallet.bcWallet.address = config.BLOCKCHAIN_WALLET_ADDRESS;
+        }
+        return Wallet.bcWallet;
     }
 
+    /**
+     * Calculates wallet balance by examining the TransactionInput and TransactionOutput objects on the blockchain.
+     * Only the most recent TransactionInput object is considered as the starting balance and then all other transfers
+     * to this wallet since that timestamp are added to get the final wallet balance.
+     * @param blockchain Blockchain to use for calculating the wallet balance.
+     */
     calculateBalance(blockchain: Blockchain): number {
         let balance = this.balance;
-        const transactions: Transaction [] = [];
-        blockchain.chain.forEach(block => block.data.forEach(transaction  => {
-            transactions.push(transaction);
-        }));
+        const allTransactions: Transaction [] = [];
 
-        //find all the input transactions of this wallet
-        const matchingWalletTxs = transactions.filter(transaction => 
+        //collect all transactions into one list
+        blockchain.chain.forEach(block => {
+            let blockTransactions = <Transaction []> block.data;
+            blockTransactions.forEach(transaction => {
+                allTransactions.push(transaction);
+            });
+        });
+
+        //find all the transactions who's input transactions are from this wallet
+        const thisWalletTxs = allTransactions.filter(transaction => 
             transaction.txInput.address === this.publicKey);
         
         let startTime: number = 0;
 
-        if(matchingWalletTxs.length > 0) {
+        if(thisWalletTxs.length > 0) {
             //only interested in latest input transaction - balance will be calculated from it
             //get the most recent input transaction based on timestamp
-            let mostRecentTx: Transaction = matchingWalletTxs.reduce((previousTx, currentTx) => 
-                (previousTx.txInput.timestamp > currentTx.txInput.timestamp) ? previousTx : currentTx );
+            let mostRecentTx: Transaction = thisWalletTxs.reduce((previousTx, currentTx) => 
+                (previousTx.txInput.timestamp > currentTx.txInput.timestamp) ? previousTx : currentTx);
 
             //find this wallet's OutputTransaction in the most recent Transaction
             //this will be the starting balance calculation
@@ -53,11 +71,15 @@ export default class Wallet {
             startTime = mostRecentTx.txInput.timestamp;
         }
 
-        for(let i=0; i<transactions.length; i++) {
-            if(transactions[i].txInput.timestamp > startTime) {
-                for(let j=0; j<transactions[i].txOutputs.length; j++) {
-                    if(transactions[i].txOutputs[j].address === this.publicKey) {
-                        balance += transactions[i].txOutputs[j].amount;
+        //add all transfers to this wallet from other senders after this wallet's latest transaction
+        for(let i=0; i<allTransactions.length; i++) {
+            if(allTransactions[i].txInput.timestamp > startTime &&
+               allTransactions[i].txInput.address !== this.publicKey //from other senders
+            ) {
+
+                for(let j=0; j<allTransactions[i].txOutputs.length; j++) {
+                    if(allTransactions[i].txOutputs[j].address === this.publicKey) {
+                        balance += allTransactions[i].txOutputs[j].amount;
                     }
                 }
             }

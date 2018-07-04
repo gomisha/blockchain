@@ -16,9 +16,7 @@ describe("TransactionPool", () => {
 
     test("adds transaction to the pool - transaction doesn't exist in pool", () => {
         const foundTransaction = <Transaction> tp.transactions.find(
-            t => t.id === transaction.id);
-        const transactions: string = JSON.stringify(tp.transactions);
-
+            tx => tx.id === transaction.id);
         expect(foundTransaction).toEqual(transaction);
     });
 
@@ -45,7 +43,7 @@ describe("TransactionPool", () => {
     });
 
     describe("mixing valid and corrupt transactoins - check that only valid transactions are mined", () => {
-        let validTransactions : Transaction [];
+        let validTransactions: Transaction [];
 
         //make a series of valid and invalid transactions
         beforeEach(() => {
@@ -58,7 +56,7 @@ describe("TransactionPool", () => {
                     transaction.txInput.amount = 5000; //corrupt tx half the time
                 }
                 else if(i%3 == 0) {
-                    transaction.txInput.signature = '{r:123456,s:7777,recoveryParam:1}'; //corrupt signature sometimes
+                    transaction.txInput.signature = '1234567890abcdef'; //corrupt signature sometimes
                 } else {
                     validTransactions.push(transaction); //create expected valid transactions
                 }

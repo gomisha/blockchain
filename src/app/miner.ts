@@ -29,7 +29,7 @@ export default class Miner {
      */
     mine(): Block {
         const validTransactions: Transaction [] = this.tp.validTransactions();
-        validTransactions.push(Transaction.rewardTransaction(this.wallet, Wallet.blockchainWallet()));
+        validTransactions.push(Transaction.rewardTransaction(this.wallet, Wallet.getBlockchainWallet()));
         let block: Block = this.blockchain.addBlock(validTransactions);
         this.p2pServer.syncChains();
         this.tp.clear();

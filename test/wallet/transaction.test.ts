@@ -16,15 +16,17 @@ describe("Transaction", () => {
 
     test("outputs the amount subtracted from wallet balance", () => {
         //find the output object who's address matches the wallet's public key
-        const senderTxInput  = <TransactionInput> transaction.txOutputs.find(output => output.address === senderWallet.publicKey);
+        const senderTxOutput  = <TransactionOutput> transaction.txOutputs.find(
+            txOutput => txOutput.address === senderWallet.publicKey);
 
-        expect(senderTxInput.amount).toEqual(senderWallet.balance - firstTxAmount);
+        expect(senderTxOutput.amount).toEqual(senderWallet.balance - firstTxAmount);
     });
 
     test("amount added to recipient amount", () => {
-        const recipientTxInput = <TransactionInput> transaction.txOutputs.find(output => output.address === recipient);
+        const recipientTxOutput = <TransactionOutput> transaction.txOutputs.find(
+            txOutput => txOutput.address === recipient);
 
-        expect(recipientTxInput.amount).toEqual(firstTxAmount);
+        expect(recipientTxOutput.amount).toEqual(firstTxAmount);
     });
 
     test("inputs the balance of the wallet", () => {
@@ -39,20 +41,23 @@ describe("Transaction", () => {
         transaction.txInput.amount = 10000;
         //input balance isn't part of signature, so won't matter if it was corrupted
         expect(Transaction.verifyTransaction(transaction)).toBe(true);
-    })
+    });
 
-    test("verifyTransaction - invalid transaction - output corrupted", ()=>{
+    test("verifyTransaction - invalid transaction - input signature corrupted", () => {
+        transaction.txInput.signature = "123456abcdef"; //signature changed
+        expect(Transaction.verifyTransaction(transaction)).toBe(false);
+    });
+
+    test("verifyTransaction - invalid transaction - output corrupted", ()=> {
         transaction.txOutputs[0].amount = 10000;
         expect(Transaction.verifyTransaction(transaction)).toBe(false);
-    })
+    });
 
-    describe("transacting with amount that exceeds balance", () => {
-        test("does NOT create the transaction and throws error", ()=>{
-            firstTxAmount = 50000;
-            expect(() => {
-                Transaction.newTransaction(senderWallet, recipient, firstTxAmount)
-            }).toThrowError('exceeds');
-        });
+    test("transacting with amount that exceeds balance - does NOT create the transaction and throws error", ()=> {
+        firstTxAmount = 50000;
+        expect(() => {
+            Transaction.newTransaction(senderWallet, recipient, firstTxAmount)
+        }).toThrowError('exceeds');
     });
 
     describe("updating transaction - successful", () => {
@@ -66,21 +71,20 @@ describe("Transaction", () => {
 
         test("subtracts the 2nd amount from sender's output", () => {
             //find the output object who's address matches the wallet's public key
-            const senderTxInput  = <TransactionInput> transaction.txOutputs.find(
+            const senderTxOutput  = <TransactionOutput> transaction.txOutputs.find(
                 output => output.address === senderWallet.publicKey);
 
             //sender's balance should've had 2 subtractions - 1 for each transfer
-            expect(senderTxInput.amount).toEqual(senderWallet.balance - firstTxAmount - secondTxAmount);
+            expect(senderTxOutput.amount).toEqual(senderWallet.balance - firstTxAmount - secondTxAmount);
         });
 
 
         test("outputs an amount for 2nd recipient", ()=> {
-            const nextRecipientTxInput  = <TransactionInput> transaction.txOutputs.find(
+            const nextRecipientTxOutput  = <TransactionOutput> transaction.txOutputs.find(
                 output => output.address === nextRecipient);
             //2nd recipients receives transfer
-            expect(nextRecipientTxInput.amount).toEqual(secondTxAmount);
+            expect(nextRecipientTxOutput.amount).toEqual(secondTxAmount);
         });
-
     })
 
     describe("updating transaction - error", () => {
@@ -92,12 +96,12 @@ describe("Transaction", () => {
             expect(() => {
                 transaction = transaction.update(senderWallet, nextRecipient, secondTxAmount);
             }).toThrowError('exceeds');
-        })
+        });
     });
 
     describe("creating reward transaction", () => {
         beforeEach(() => {
-            transaction = Transaction.rewardTransaction(senderWallet, Wallet.blockchainWallet());
+            transaction = Transaction.rewardTransaction(senderWallet, Wallet.getBlockchainWallet());
         })
 
         test("reward the miner's wallet", () => {
@@ -106,10 +110,10 @@ describe("Transaction", () => {
             expect(txOutput.amount).toEqual(config.MINING_REWARD);
 
             //blockchain wallet should have special address
-            expect(Wallet.blockchainWallet().address).toEqual(config.BLOCKCHAIN_WALLET_ADDRESS);
+            expect(Wallet.getBlockchainWallet().address).toEqual(config.BLOCKCHAIN_WALLET_ADDRESS);
 
             //sender wallet should have undefined address
             expect(senderWallet.address).toBeUndefined();
-        })
-    })
-})
+        });
+    });
+});
