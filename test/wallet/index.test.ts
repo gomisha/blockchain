@@ -6,36 +6,46 @@ import Blockchain from "../../src/blockchain";
 import { INITIAL_BALANCE } from "../../src/config";
 
 describe("Wallet", () => {
-    let tp: TransactionPool, wallet: Wallet, blockchain: Blockchain;
+    let tp: TransactionPool, wallet1: Wallet, blockchain: Blockchain;
     let transaction: Transaction, sendAmount: number, recipient: string;
 
     beforeEach(() => {
-        wallet = new Wallet();
+        wallet1 = new Wallet();
         tp = new TransactionPool();
         blockchain = new Blockchain();
 
         sendAmount = 50;
         recipient = "random-address";
-        transaction = wallet.createOrUpdateTransaction(recipient, sendAmount, blockchain, tp);
-
+        transaction = wallet1.createOrUpdateTransaction(recipient, sendAmount, blockchain, tp);
     });
 
-    test("transaction exceeds balance and throws error", () => {
+    test("transaction exceeds balance (single transaction) and throws error", () => {
         expect(() => {
-            wallet.createOrUpdateTransaction(recipient, 1000, blockchain, tp);
+            wallet1.createOrUpdateTransaction(recipient, 1000, blockchain, tp);
+        }).toThrowError('exceeds');
+    });
+
+    test("exceeds balance with multiple small transactions and throws error", () => {
+        wallet1.createOrUpdateTransaction("foo", 200, blockchain, tp);
+        wallet1.createOrUpdateTransaction("bar", 200, blockchain, tp); 
+
+        //should only have 50 left (500 - 50 - 200 - 200) in pending balance 
+        //so shouldn't be allowed to transfer more than that
+        expect(() => {
+            wallet1.createOrUpdateTransaction("baz", 51, blockchain, tp);
         }).toThrowError('exceeds');
     });
 
     describe("create 2nd identical transaction", () => {
         beforeEach(() => {
-            wallet.createOrUpdateTransaction(recipient, sendAmount, blockchain, tp);
+            wallet1.createOrUpdateTransaction(recipient, sendAmount, blockchain, tp);
         });
 
         test("double the `sendAmount` subtracted from the wallet balance", () => {
             let foundTxOutput = <TransactionOutput> transaction.txOutputs.find(
-                txOutput => txOutput.address === wallet.publicKey);
+                txOutput => txOutput.address === wallet1.publicKey);
             
-            const expectedWalletBalance = wallet.balance - sendAmount * 2;
+            const expectedWalletBalance = wallet1.balance - sendAmount * 2;
             expect(foundTxOutput.amount).toEqual(expectedWalletBalance);
         });
 
@@ -51,58 +61,113 @@ describe("Wallet", () => {
     });
 
     describe("calculating balance", () => {
-        let addBalance:number, repeadAdd:number, senderWallet: Wallet;
+        let transfer1:number, repeadAdd:number, wallet2: Wallet;
 
         beforeEach(() => {
             tp.clear(); //clear any previous transactions
-            senderWallet = new Wallet();
-            addBalance = 100;
+            wallet2 = new Wallet();
+            transfer1 = 10;
             repeadAdd = 3;
 
             for(let i=0; i<repeadAdd; i++) {
-                senderWallet.createOrUpdateTransaction(wallet.publicKey, addBalance, blockchain, tp);
+                wallet2.createOrUpdateTransaction(wallet1.publicKey, transfer1, blockchain, tp);
             }
             blockchain.addBlock(tp.transactions);
         });
 
         test("calculates balance for blockchain transactions matching the recipient", () => {
             //subtract initial sendAmount from higher level beforeEach()
-            const expectedBalance = INITIAL_BALANCE + (addBalance * repeadAdd);
-            expect(wallet.calculateBalance(blockchain)).toEqual(expectedBalance);
+            const expectedBalance = INITIAL_BALANCE + (transfer1 * repeadAdd);
+            expect(wallet1.calculateBalance(blockchain)).toEqual(expectedBalance);
         });
 
         test("calculates balance for blockchain transactions matching the sender", () => {
-            const expectedBalance = INITIAL_BALANCE - (addBalance * repeadAdd);
-            expect(senderWallet.calculateBalance(blockchain)).toEqual(expectedBalance);
+            const expectedBalance = INITIAL_BALANCE - (transfer1 * repeadAdd);
+            expect(wallet2.calculateBalance(blockchain)).toEqual(expectedBalance);
         });
 
         describe("and recipient conducts transaction - should calculate balance only since last transaction", () => {
-            let subtractBalance: number, recipientBalance: number;
+            let transfer2: number, startingBalance: number;
 
             beforeEach(() => {
                 tp.clear(); //make sure old transactions are processed
-                subtractBalance = 60;
-                recipientBalance = wallet.calculateBalance(blockchain);
-    
-                //recipient now conducts new transaction
-                wallet.createOrUpdateTransaction(senderWallet.publicKey, subtractBalance, blockchain, tp);
-    
-                blockchain.addBlock(tp.transactions);
+                transfer2 = 60;
+                startingBalance = wallet1.calculateBalance(blockchain);
             });
 
-            describe("and the sender sends another transaction to recipient", () => {
-                beforeEach(() => {
-                    tp.clear();
-                    senderWallet.createOrUpdateTransaction(wallet.publicKey, addBalance, blockchain, tp);
+            test("calculates recipient balance since most recent receipt transactions", () => {
+                //recipient now conducts new transaction
+                wallet1.createOrUpdateTransaction(wallet2.publicKey, transfer2, blockchain, tp);
+    
+                blockchain.addBlock(tp.transactions);
+
+                tp.clear();
+
+                wallet2.createOrUpdateTransaction(wallet1.publicKey, transfer1, blockchain, tp);
+                blockchain.addBlock(tp.transactions);
+
+                const expectedBalance = startingBalance - transfer2 + transfer1;
+                expect(wallet1.calculateBalance(blockchain)).toEqual(expectedBalance);
+            });
+
+
+            describe("transfer back and forth between 2 wallets", () => {
+                function mineMock(): void {
                     blockchain.addBlock(tp.transactions);
+                    tp.clear();
+                }
+       
+
+                let wallet3:Wallet, wallet4: Wallet;
+                beforeEach(() => {
+                    wallet3 = new Wallet();
+                    wallet4 = new Wallet();
+                    tp.clear();
+                });
+                test("transfer back and forth between 2 wallets - mine after each transfer", () => {
+                    expect(wallet3.calculateBalance(blockchain)).toBe(INITIAL_BALANCE);
+                    expect(wallet4.calculateBalance(blockchain)).toBe(INITIAL_BALANCE);
+
+                    expect(wallet3.balance).toBe(INITIAL_BALANCE);
+                    expect(wallet4.balance).toBe(INITIAL_BALANCE);
+
+                    //WALLET 3 ------> WALLET 4 (transfer1)
+                    wallet3.createOrUpdateTransaction(wallet4.publicKey, transfer1, blockchain, tp);
+                    mineMock();
+                    
+                    expect(wallet3.calculateBalance(blockchain)).toBe(INITIAL_BALANCE - transfer1);
+                    expect(wallet4.calculateBalance(blockchain)).toBe(INITIAL_BALANCE + transfer1);
+
+                    //WALLET 4 -----> WALLET 3 (transfer1)
+                    wallet4.createOrUpdateTransaction(wallet3.publicKey, transfer1, blockchain, tp);
+                    mineMock();
+
+                    expect(wallet3.calculateBalance(blockchain)).toBe(INITIAL_BALANCE);
+                    expect(wallet4.calculateBalance(blockchain)).toBe(INITIAL_BALANCE);
                 });
 
-                test("calculates recipient balance since most recent receipt transactions", () => {
-                    const expectedBalance = recipientBalance - subtractBalance + addBalance;
-                    expect(wallet.calculateBalance(blockchain)).toEqual(expectedBalance);
+                test("transfer back and forth between 2 wallets - mine after both transfers", () => {
+                    expect(wallet3.calculateBalance(blockchain)).toBe(INITIAL_BALANCE);
+                    expect(wallet4.calculateBalance(blockchain)).toBe(INITIAL_BALANCE);
+
+                    expect(wallet3.balance).toBe(INITIAL_BALANCE);
+                    expect(wallet4.balance).toBe(INITIAL_BALANCE);
+
+                    //WALLET 3 ------> WALLET 4 (transfer1)
+                    wallet3.createOrUpdateTransaction(wallet4.publicKey, transfer1, blockchain, tp);
+                    
+                    //transaction hasn't been mined, so balance hasn't changed
+                    expect(wallet3.calculateBalance(blockchain)).toBe(INITIAL_BALANCE);
+                    expect(wallet4.calculateBalance(blockchain)).toBe(INITIAL_BALANCE);
+
+                    //WALLET 4 -----> WALLET 3 (transfer1)
+                    wallet4.createOrUpdateTransaction(wallet3.publicKey, transfer1, blockchain, tp);
+                    mineMock();
+
+                    expect(wallet3.calculateBalance(blockchain)).toBe(INITIAL_BALANCE);
+                    expect(wallet4.calculateBalance(blockchain)).toBe(INITIAL_BALANCE);
                 });
             });
         });
     });
 });
-
