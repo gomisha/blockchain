@@ -1,0 +1,15 @@
+- balance calculation is flawed:
+    - assumes transactions are mined right away
+    - bug: A sends to B, then B sends to A, then mine transactions
+        - will show improper balance for B because won't count the transfer from A which occured before B's Input Transaction was created
+
+- balance calculation is inefficient
+    - checks all transactions from entire blockchain - as blockchain grows, this becomes a slower process
+
+- spending unconfirmed/unmined coins
+    - if sender creates multiple transactions and sends funds to multiple recipients:
+        - no mechanism in place to check if all the transfers together exceed his balance
+        - only checking on each transaction to see if it's bigger than current balance
+        - pending balance might be answers
+
+- miner fee/transaction fee added to each transaction by the sender
