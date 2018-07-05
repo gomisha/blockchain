@@ -44,7 +44,7 @@ describe("Wallet", () => {
         test("double the `sendAmount` subtracted from the wallet balance", () => {
             let foundTxOutput = <TransactionOutput> transaction.txOutputs.find(
                 txOutput => txOutput.address === wallet1.publicKey);
-            
+
             const expectedWalletBalance = wallet1.balance - sendAmount * 2;
             expect(foundTxOutput.amount).toEqual(expectedWalletBalance);
         });
@@ -116,7 +116,6 @@ describe("Wallet", () => {
                     blockchain.addBlock(tp.transactions);
                     tp.clear();
                 }
-       
 
                 let wallet3:Wallet, wallet4: Wallet;
                 beforeEach(() => {
@@ -134,7 +133,7 @@ describe("Wallet", () => {
                     //WALLET 3 ------> WALLET 4 (transfer1)
                     wallet3.createOrUpdateTransaction(wallet4.publicKey, transfer1, blockchain, tp);
                     mineMock();
-                    
+
                     expect(wallet3.calculateBalance(blockchain)).toBe(INITIAL_BALANCE - transfer1);
                     expect(wallet4.calculateBalance(blockchain)).toBe(INITIAL_BALANCE + transfer1);
 

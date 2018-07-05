@@ -110,10 +110,7 @@ describe("Transaction", () => {
             expect(txOutput.amount).toEqual(config.MINING_REWARD);
 
             //blockchain wallet should have special address
-            expect(Wallet.getBlockchainWallet().address).toEqual(config.BLOCKCHAIN_WALLET_ADDRESS);
-
-            //sender wallet should have undefined address
-            expect(senderWallet.address).toBeUndefined();
+            expect(Wallet.getBlockchainWallet().publicKey).toEqual(config.BLOCKCHAIN_WALLET_ADDRESS);
         });
     });
 });

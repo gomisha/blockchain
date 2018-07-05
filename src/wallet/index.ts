@@ -4,19 +4,25 @@ import TransactionPool from "./transaction-pool";
 import Transaction from "./transaction";
 import Blockchain from "../blockchain";
 import Block from "../blockchain/block";
-import TransactionOutput from "./transaction-output";
 
 export default class Wallet {
     balance: number;
     keypair: any;
     publicKey: any;
-    address: string;
     static bcWallet: Wallet;
-    
+
+    //for balance re-calculation - need to know from where to start recalculating
+    lastBlockTimestamp: number;
+
+    //when last did balance recalculation, this was the last block
+    lastBlockBalanceCalc: number;
+
     constructor() {
         this.balance = config.INITIAL_BALANCE;
         this.keypair = ChainUtil.genKeyPair();
         this.publicKey = this.keypair.getPublic().encode("hex");
+        this.lastBlockTimestamp = 0;
+        this.lastBlockBalanceCalc = 0;
     }
 
     /**
@@ -26,64 +32,87 @@ export default class Wallet {
     static getBlockchainWallet():Wallet {
         if(!Wallet.bcWallet) {
             Wallet.bcWallet = new this();
-            Wallet.bcWallet.address = config.BLOCKCHAIN_WALLET_ADDRESS;
+            Wallet.bcWallet.publicKey = config.BLOCKCHAIN_WALLET_ADDRESS;
         }
         return Wallet.bcWallet;
     }
 
     /**
-     * Calculates wallet balance by examining the TransactionInput and TransactionOutput objects on the blockchain.
-     * Only the most recent TransactionInput object is considered as the starting balance and then all other transfers
-     * to this wallet since that timestamp are added to get the final wallet balance.
+     * Calculates wallet balance by:
+     * - only checking new blocks mined (added) since last time balance was calculated
+     * - divides up transactions into those that transfered money TO this wallet and FROM this wallet
+     * Sets the balance of this wallet after calculating it, so that won't have to redo calculations
+     * next time if blockchain remains unchanged.
      * @param blockchain Blockchain to use for calculating the wallet balance.
      */
     calculateBalance(blockchain: Blockchain): number {
+        this.lastBlockTimestamp = blockchain.chain[blockchain.chain.length-1].timestamp;
         let balance = this.balance;
         const allTransactions: Transaction [] = [];
 
-        //collect all transactions into one list
-        blockchain.chain.forEach(block => {
-            let blockTransactions = <Transaction []> block.data;
-            blockTransactions.forEach(transaction => {
-                allTransactions.push(transaction);
-            });
-        });
-
-        //find all the transactions who's input transactions are from this wallet
-        const thisWalletTxs = allTransactions.filter(transaction => 
-            transaction.txInput.address === this.publicKey);
-        
-        let startTime: number = 0;
-
-        if(thisWalletTxs.length > 0) {
-            //only interested in latest input transaction - balance will be calculated from it
-            //get the most recent input transaction based on timestamp
-            let mostRecentTx: Transaction = thisWalletTxs.reduce((previousTx, currentTx) => 
-                (previousTx.txInput.timestamp > currentTx.txInput.timestamp) ? previousTx : currentTx);
-
-            //find this wallet's OutputTransaction in the most recent Transaction
-            //this will be the starting balance calculation
-            let txOutput = <TransactionOutput> mostRecentTx.txOutputs.find(txOutput => 
-                txOutput.address === this.publicKey);
-            balance = txOutput.amount;
-
-            //calculate balance based on output transactions after the timestamp of input transaction
-            startTime = mostRecentTx.txInput.timestamp;
+        //balance already up to date, no need for recalculation
+        if(this.lastBlockBalanceCalc === this.lastBlockTimestamp &&
+            this.lastBlockBalanceCalc > 0) { //balance already calculated at least once
+            return balance;
         }
 
-        //add all transfers to this wallet from other senders after this wallet's latest transaction
-        for(let i=0; i<allTransactions.length; i++) {
-            if(allTransactions[i].txInput.timestamp > startTime &&
-               allTransactions[i].txInput.address !== this.publicKey //from other senders
-            ) {
+        //start from end of blockchain to find where to start recalculating from
+        //as blockchain grows, won't waste time rechecking old blocks
+        let startBlockIndex = 0;
+        let blocks: Block [] = blockchain.chain;
+        for(let i=blocks.length-1; i>=0; i--) {
+            if(blocks[i].timestamp === this.lastBlockBalanceCalc) {
+                //calculation should start from 1 block AFTER the last block used to calculate balance
+                startBlockIndex = i + 1;
+                break;
+            }
+        }
 
-                for(let j=0; j<allTransactions[i].txOutputs.length; j++) {
-                    if(allTransactions[i].txOutputs[j].address === this.publicKey) {
-                        balance += allTransactions[i].txOutputs[j].amount;
-                    }
+        //only add transactions from new blocks mined since last time calculated balance
+        for(let i=startBlockIndex; i<blocks.length; i++) {
+            let blockTransactions: Transaction [] = <Transaction []> blocks[i].data;
+            for(let j=0; j<blockTransactions.length; j++) {
+                allTransactions.push(blockTransactions[j]);
+            }
+        }
+
+        //find all of this wallet's input transactions - i.e. withdrawals to other wallets
+        const thisWalletWithdrawalTxs = allTransactions.filter(
+            transaction => transaction.txInput.address === this.publicKey);
+
+        //find all of this wallet's output transactions (where it's not in the input transaction)- i.e. deposits from other wallets
+        const thisWalletDepositTxs = allTransactions.filter(
+            transaction => {
+                //start from index 1 for TransactionOutputs because index 0 holds temporary balance
+                for(let i=1; i<transaction.txOutputs.length; i++) {
+                    if(transaction.txOutputs[i].address === this.publicKey &&
+                        transaction.txInput.address !== this.publicKey) return true;
+                }
+                return false;
+            });
+
+        //subtract all withdrawals from this wallet
+        for(let i=0; i<thisWalletWithdrawalTxs.length; i++) {
+            //start from index 1 for TransactionOutputs because index 0 holds temporary balance
+            for(let j=1; j<thisWalletWithdrawalTxs[i].txOutputs.length; j++) {
+                balance -= thisWalletWithdrawalTxs[i].txOutputs[j].amount;
+            }
+        }
+
+        //add all deposits from this wallet
+        for(let i=0; i<thisWalletDepositTxs.length; i++) {
+            //start from index 1 for TransactionOutputs because index 0 holds temporary balance
+            for(let j=1; j<thisWalletDepositTxs[i].txOutputs.length; j++) {
+                if(thisWalletDepositTxs[i].txOutputs[j].address === this.publicKey) {
+                    balance += thisWalletDepositTxs[i].txOutputs[j].amount;
                 }
             }
         }
+
+        //set so next time won't have to re-check any block if blockchain unchanged
+        this.lastBlockBalanceCalc = this.lastBlockTimestamp;
+
+        this.balance = balance;
         return balance;
     }
 
@@ -128,4 +157,4 @@ export default class Wallet {
             balance  : ${this.balance}
         `;
     }
-}
+ }

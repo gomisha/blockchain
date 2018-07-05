@@ -1,5 +1,7 @@
 import ChainUtil from "../chain-util";
 import * as config from "../config";
+import Transaction from "../wallet/transaction";
+import TransactionInput from "../wallet/transaction-input";
 
 export default class Block {
 	timestamp: number;
@@ -24,7 +26,10 @@ export default class Block {
 	 * First block of the blockchain.
 	 */
 	static getGenesisBlock(): Block {
-		return new this(0, '-----', 'f1r5t-ha4h', [], 0, config.DIFFICULTY);
+		let genesisTx: Transaction = new Transaction();
+		genesisTx.id = "genesis";
+		genesisTx.txInput = new TransactionInput(0, "-----");
+		return new Block(0, '-----', 'f1r5t-ha4h', genesisTx, 0, config.DIFFICULTY);
 	}
 
 	/**

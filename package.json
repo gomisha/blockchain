@@ -39,6 +39,7 @@
   },
   "jest": {
     "transform": {},
+    "testRegex_test": "/test/blockchain/index.test.js",
     "testRegex": "/test/.*\\.test\\.(js)$",
     "testEnvironment": "node"
   }
