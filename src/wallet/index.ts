@@ -48,7 +48,7 @@ export default class Wallet {
     calculateBalance(blockchain: Blockchain): number {
         this.lastBlockTimestamp = blockchain.chain[blockchain.chain.length-1].timestamp;
         let balance = this.balance;
-        const allTransactions: Transaction [] = [];
+        const newTransactions: Transaction [] = [];
 
         //balance already up to date, no need for recalculation
         if(this.lastBlockBalanceCalc === this.lastBlockTimestamp &&
@@ -67,21 +67,19 @@ export default class Wallet {
                 break;
             }
         }
-
         //only add transactions from new blocks mined since last time calculated balance
         for(let i=startBlockIndex; i<blocks.length; i++) {
             let blockTransactions: Transaction [] = <Transaction []> blocks[i].data;
             for(let j=0; j<blockTransactions.length; j++) {
-                allTransactions.push(blockTransactions[j]);
+                newTransactions.push(blockTransactions[j]);
             }
         }
-
         //find all of this wallet's input transactions - i.e. withdrawals to other wallets
-        const thisWalletWithdrawalTxs = allTransactions.filter(
+        const thisWalletWithdrawalTxs = newTransactions.filter(
             transaction => transaction.txInput.address === this.publicKey);
 
         //find all of this wallet's output transactions (where it's not in the input transaction)- i.e. deposits from other wallets
-        const thisWalletDepositTxs = allTransactions.filter(
+        const thisWalletDepositTxs = newTransactions.filter(
             transaction => {
                 //start from index 1 for TransactionOutputs because index 0 holds temporary balance
                 for(let i=1; i<transaction.txOutputs.length; i++) {
@@ -91,7 +89,7 @@ export default class Wallet {
                 return false;
             });
 
-        //subtract all withdrawals from this wallet
+        //subtract all new withdrawals from this wallet
         for(let i=0; i<thisWalletWithdrawalTxs.length; i++) {
             //start from index 1 for TransactionOutputs because index 0 holds temporary balance
             for(let j=1; j<thisWalletWithdrawalTxs[i].txOutputs.length; j++) {
@@ -99,7 +97,7 @@ export default class Wallet {
             }
         }
 
-        //add all deposits from this wallet
+        //add all new deposits to this wallet
         for(let i=0; i<thisWalletDepositTxs.length; i++) {
             //start from index 1 for TransactionOutputs because index 0 holds temporary balance
             for(let j=1; j<thisWalletDepositTxs[i].txOutputs.length; j++) {
@@ -111,7 +109,6 @@ export default class Wallet {
 
         //set so next time won't have to re-check any block if blockchain unchanged
         this.lastBlockBalanceCalc = this.lastBlockTimestamp;
-
         this.balance = balance;
         return balance;
     }

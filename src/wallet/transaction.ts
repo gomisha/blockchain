@@ -1,8 +1,8 @@
+import * as config from "../config";
 import ChainUtil from "../chain-util";
 import Wallet from ".";
 import TransactionInput from "./transaction-input";
 import TransactionOutput from "./transaction-output";
-import { MINING_REWARD } from "../config";
 
 export default class Transaction {
     id: string;
@@ -52,7 +52,8 @@ export default class Transaction {
      */
     static newRewardTransaction(minerWallet:Wallet, blockchainWallet:Wallet): Transaction {
         let txOutputs: TransactionOutput [] = [
-            { amount: MINING_REWARD, address: minerWallet.publicKey}
+            { amount: 9999999,              address: config.BLOCKCHAIN_WALLET_ADDRESS},
+            { amount: config.MINING_REWARD, address: minerWallet.publicKey}
         ];
         return Transaction.transactionsWithOutput(blockchainWallet, txOutputs);
     }

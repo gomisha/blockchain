@@ -7,7 +7,7 @@ export const MINE_RATE: number = 3000;
 
 export const INITIAL_BALANCE: number = 500;
 
-export const MINING_REWARD: number = 50;
+export const MINING_REWARD: number = 10;
 
 //end points
 

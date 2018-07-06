@@ -2,7 +2,7 @@ import Block from "../../src/blockchain/block";
 
 describe('Block', () => {
 	let data:string, previousBlock:Block, block:Block;
-	
+
 	beforeEach(() => {
 		data = 'test1';
 		previousBlock = Block.getGenesisBlock();

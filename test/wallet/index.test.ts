@@ -313,10 +313,6 @@ describe("Wallet", () => {
                     expect(wallet3.balance).toBe(INITIAL_BALANCE);
                     expect(wallet4.balance).toBe(INITIAL_BALANCE);
                 });
-
-                test("transfer back and forth between 3 wallets - mine after 5 transfers", () => {
-
-                });
             });
         });
     });
