@@ -45,12 +45,12 @@ export default class Transaction {
     }
 
     /**
-     * Generates reward transaction for miners.
+     * Generates reward transaction for miners. Added to array TransactionOutputs within the transaction.
      * @param minerWallet Miner's wallet.
      * @param blockchainWallet Blockchain's wallet.
      * @returns The reward transaction for the miner.
      */
-    static rewardTransaction(minerWallet:Wallet, blockchainWallet:Wallet): Transaction {
+    static newRewardTransaction(minerWallet:Wallet, blockchainWallet:Wallet): Transaction {
         let txOutputs: TransactionOutput [] = [
             { amount: MINING_REWARD, address: minerWallet.publicKey}
         ];

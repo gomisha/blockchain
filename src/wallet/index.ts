@@ -41,8 +41,8 @@ export default class Wallet {
      * Calculates wallet balance by:
      * - only checking new blocks mined (added) since last time balance was calculated
      * - divides up transactions into those that transfered money TO this wallet and FROM this wallet
-     * Sets the balance of this wallet after calculating it, so that won't have to redo calculations
-     * next time if blockchain remains unchanged.
+     * Sets the balance of this wallet after calculating it, so won't have to re-calculate next time
+     * if blockchain hasn't changed - will be super quick
      * @param blockchain Blockchain to use for calculating the wallet balance.
      */
     calculateBalance(blockchain: Blockchain): number {

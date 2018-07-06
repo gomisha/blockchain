@@ -1,25 +1,3 @@
-- bug: balance calculation is flawed:
-    - assumes transactions are mined right away
-    - bug: A sends to B, then B sends to A, then mine transactions
-        - will show improper balance for B because won't count the transfer from A which occured before B's Input Transaction was created
-        Example:
-        - A sends 25 to B, then B sends 25 to A, then C mines transactions (so there are 2 transactions in transaction pool)
-        - will show improper balance for B because it won't count the transfer from A which occurred before B's Input Transaction was created.
-        - in the end, A and B should both have 500 (what they started with) and C should have 550 (his mining reward). But in reality, it will show A as having 500, B with balance 475 and C with 550. 
-        - B's balance calculation didn't take into account A's transfer which occurred before B's Input Transaction was created.        
-
-- balance calculation is inefficient
-    - checks all transactions from entire blockchain - as blockchain grows, this becomes a slower process
-
-- bug: transfering more than wallet balance with multiple smaller transactions
-spending unconfirmed/unmined coins - Wallet.createOrUpdateTransaction()
-    - if sender creates multiple transactions and sends funds to multiple recipients:
-        - no mechanism in place to check if all the transfers together exceed his balance
-        - only checking on each transaction to see if it's bigger than current balance
-        - pending balance might be answers
-        Example:
-        - A has a balance of 500 and sends 100 to 10 different people 
-        - through 10 unmined transactions created in quick succession, before they are mined
-        - A has exceeded his balance but this error won't be caught.        
-
 - miner fee/transaction fee added to each transaction by the sender
+
+- web UI

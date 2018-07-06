@@ -101,7 +101,7 @@ describe("Transaction", () => {
 
     describe("creating reward transaction", () => {
         beforeEach(() => {
-            transaction = Transaction.rewardTransaction(senderWallet, Wallet.getBlockchainWallet());
+            transaction = Transaction.newRewardTransaction(senderWallet, Wallet.getBlockchainWallet());
         })
 
         test("reward the miner's wallet", () => {

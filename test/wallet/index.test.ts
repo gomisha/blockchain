@@ -87,11 +87,14 @@ describe("Wallet", () => {
         });
 
         describe("and recipient conducts transaction - should calculate balance only since last transaction", () => {
-            let transfer2: number, startingBalance: number;
+            let transfer2: number, transfer3: number, transfer4: number, transfer5: number, startingBalance: number;
 
             beforeEach(() => {
                 tp.clear(); //make sure old transactions are processed
                 transfer2 = 60;
+                transfer3 = 101;
+                transfer4 = 57;
+                transfer5 = 10;
                 startingBalance = wallet1.calculateBalance(blockchain);
             });
 
@@ -117,18 +120,21 @@ describe("Wallet", () => {
                     tp.clear();
                 }
 
-                let wallet3:Wallet, wallet4: Wallet;
+                let wallet3:Wallet, wallet4: Wallet, wallet5: Wallet;
                 beforeEach(() => {
                     wallet3 = new Wallet();
                     wallet4 = new Wallet();
+                    wallet5 = new Wallet();
                     tp.clear();
                 });
-                test("transfer back and forth between 2 wallets - mine after each transfer", () => {
+                test("transfer back and forth between 3 wallets - mine after EACH transfer", () => {
                     expect(wallet3.calculateBalance(blockchain)).toBe(INITIAL_BALANCE);
                     expect(wallet4.calculateBalance(blockchain)).toBe(INITIAL_BALANCE);
+                    expect(wallet5.calculateBalance(blockchain)).toBe(INITIAL_BALANCE);
 
                     expect(wallet3.balance).toBe(INITIAL_BALANCE);
                     expect(wallet4.balance).toBe(INITIAL_BALANCE);
+                    expect(wallet5.balance).toBe(INITIAL_BALANCE);
 
                     //WALLET 3 ------> WALLET 4 (transfer1)
                     wallet3.createOrUpdateTransaction(wallet4.publicKey, transfer1, blockchain, tp);
@@ -136,6 +142,11 @@ describe("Wallet", () => {
 
                     expect(wallet3.calculateBalance(blockchain)).toBe(INITIAL_BALANCE - transfer1);
                     expect(wallet4.calculateBalance(blockchain)).toBe(INITIAL_BALANCE + transfer1);
+                    expect(wallet5.calculateBalance(blockchain)).toBe(INITIAL_BALANCE);
+
+                    expect(wallet3.balance).toBe(INITIAL_BALANCE - transfer1);
+                    expect(wallet4.balance).toBe(INITIAL_BALANCE + transfer1);
+                    expect(wallet5.balance).toBe(INITIAL_BALANCE);
 
                     //WALLET 4 -----> WALLET 3 (transfer1)
                     wallet4.createOrUpdateTransaction(wallet3.publicKey, transfer1, blockchain, tp);
@@ -143,6 +154,136 @@ describe("Wallet", () => {
 
                     expect(wallet3.calculateBalance(blockchain)).toBe(INITIAL_BALANCE);
                     expect(wallet4.calculateBalance(blockchain)).toBe(INITIAL_BALANCE);
+                    expect(wallet5.calculateBalance(blockchain)).toBe(INITIAL_BALANCE);
+
+                    expect(wallet3.balance).toBe(INITIAL_BALANCE);
+                    expect(wallet4.balance).toBe(INITIAL_BALANCE);
+                    expect(wallet5.balance).toBe(INITIAL_BALANCE);
+
+                    //WALLET 3 ----> WALLET 4 (transfer2)
+                    wallet3.createOrUpdateTransaction(wallet4.publicKey, transfer2, blockchain, tp);
+                    mineMock();
+
+                    expect(wallet3.calculateBalance(blockchain)).toBe(INITIAL_BALANCE - transfer2);
+                    expect(wallet4.calculateBalance(blockchain)).toBe(INITIAL_BALANCE + transfer2);
+                    expect(wallet5.calculateBalance(blockchain)).toBe(INITIAL_BALANCE);
+
+                    expect(wallet3.balance).toBe(INITIAL_BALANCE - transfer2);
+                    expect(wallet4.balance).toBe(INITIAL_BALANCE + transfer2);
+                    expect(wallet5.balance).toBe(INITIAL_BALANCE);
+
+                    //WALLET 3 ----> WALLET 5 (transfer3)
+                    wallet3.createOrUpdateTransaction(wallet5.publicKey, transfer3, blockchain, tp);
+                    mineMock();
+
+                    expect(wallet3.calculateBalance(blockchain)).toBe(INITIAL_BALANCE - transfer2 - transfer3);
+                    expect(wallet4.calculateBalance(blockchain)).toBe(INITIAL_BALANCE + transfer2);
+                    expect(wallet5.calculateBalance(blockchain)).toBe(INITIAL_BALANCE + transfer3);
+
+                    expect(wallet3.balance).toBe(INITIAL_BALANCE - transfer2 - transfer3);
+                    expect(wallet4.balance).toBe(INITIAL_BALANCE + transfer2);
+                    expect(wallet5.balance).toBe(INITIAL_BALANCE + transfer3);
+
+                    //WALLET 5 ---> WALLET 4 (transfer4)
+                    wallet5.createOrUpdateTransaction(wallet4.publicKey, transfer4, blockchain, tp);
+                    mineMock();
+
+                    expect(wallet3.calculateBalance(blockchain)).toBe(INITIAL_BALANCE - transfer2 - transfer3);
+                    expect(wallet4.calculateBalance(blockchain)).toBe(INITIAL_BALANCE + transfer2 + transfer4);
+                    expect(wallet5.calculateBalance(blockchain)).toBe(INITIAL_BALANCE + transfer3 - transfer4);
+
+                    expect(wallet3.balance).toBe(INITIAL_BALANCE - transfer2 - transfer3);
+                    expect(wallet4.balance).toBe(INITIAL_BALANCE + transfer2 + transfer4);
+                    expect(wallet5.balance).toBe(INITIAL_BALANCE + transfer3 - transfer4);
+
+                    //WALLET 5 ---> WALLET 3 (transfer5)
+                    wallet5.createOrUpdateTransaction(wallet3.publicKey, transfer5, blockchain, tp);
+                    mineMock();
+
+                    expect(wallet3.calculateBalance(blockchain)).toBe(INITIAL_BALANCE - transfer2 - transfer3 + transfer5);
+                    expect(wallet4.calculateBalance(blockchain)).toBe(INITIAL_BALANCE + transfer2 + transfer4);
+                    expect(wallet5.calculateBalance(blockchain)).toBe(INITIAL_BALANCE + transfer3 - transfer4 - transfer5);
+
+                    expect(wallet3.balance).toBe(INITIAL_BALANCE - transfer2 - transfer3 + transfer5);
+                    expect(wallet4.balance).toBe(INITIAL_BALANCE + transfer2 + transfer4);
+                    expect(wallet5.balance).toBe(INITIAL_BALANCE + transfer3 - transfer4 - transfer5);
+                });
+
+                test("transfer back and forth between 3 wallets - mine after ALL transfers", () => {
+                    expect(wallet3.calculateBalance(blockchain)).toBe(INITIAL_BALANCE);
+                    expect(wallet4.calculateBalance(blockchain)).toBe(INITIAL_BALANCE);
+                    expect(wallet5.calculateBalance(blockchain)).toBe(INITIAL_BALANCE);
+
+                    expect(wallet3.balance).toBe(INITIAL_BALANCE);
+                    expect(wallet4.balance).toBe(INITIAL_BALANCE);
+                    expect(wallet5.balance).toBe(INITIAL_BALANCE);
+
+                    //WALLET 3 ------> WALLET 4 (transfer1)
+                    wallet3.createOrUpdateTransaction(wallet4.publicKey, transfer1, blockchain, tp);
+
+                    expect(wallet3.calculateBalance(blockchain)).toBe(INITIAL_BALANCE);
+                    expect(wallet4.calculateBalance(blockchain)).toBe(INITIAL_BALANCE);
+                    expect(wallet5.calculateBalance(blockchain)).toBe(INITIAL_BALANCE);
+
+                    expect(wallet3.balance).toBe(INITIAL_BALANCE);
+                    expect(wallet4.balance).toBe(INITIAL_BALANCE);
+                    expect(wallet5.balance).toBe(INITIAL_BALANCE);
+
+                    //WALLET 4 -----> WALLET 3 (transfer1)
+                    wallet4.createOrUpdateTransaction(wallet3.publicKey, transfer1, blockchain, tp);
+
+                    expect(wallet3.calculateBalance(blockchain)).toBe(INITIAL_BALANCE);
+                    expect(wallet4.calculateBalance(blockchain)).toBe(INITIAL_BALANCE);
+                    expect(wallet5.calculateBalance(blockchain)).toBe(INITIAL_BALANCE);
+
+                    expect(wallet3.balance).toBe(INITIAL_BALANCE);
+                    expect(wallet4.balance).toBe(INITIAL_BALANCE);
+                    expect(wallet5.balance).toBe(INITIAL_BALANCE);
+
+                    //WALLET 3 ----> WALLET 4 (transfer2)
+                    wallet3.createOrUpdateTransaction(wallet4.publicKey, transfer2, blockchain, tp);
+
+                    expect(wallet3.calculateBalance(blockchain)).toBe(INITIAL_BALANCE);
+                    expect(wallet4.calculateBalance(blockchain)).toBe(INITIAL_BALANCE);
+                    expect(wallet5.calculateBalance(blockchain)).toBe(INITIAL_BALANCE);
+
+                    expect(wallet3.balance).toBe(INITIAL_BALANCE);
+                    expect(wallet4.balance).toBe(INITIAL_BALANCE);
+                    expect(wallet5.balance).toBe(INITIAL_BALANCE);
+
+                    //WALLET 3 ----> WALLET 5 (transfer3)
+                    wallet3.createOrUpdateTransaction(wallet5.publicKey, transfer3, blockchain, tp);
+
+                    expect(wallet3.calculateBalance(blockchain)).toBe(INITIAL_BALANCE);
+                    expect(wallet4.calculateBalance(blockchain)).toBe(INITIAL_BALANCE);
+                    expect(wallet5.calculateBalance(blockchain)).toBe(INITIAL_BALANCE);
+
+                    expect(wallet3.balance).toBe(INITIAL_BALANCE);
+                    expect(wallet4.balance).toBe(INITIAL_BALANCE);
+                    expect(wallet5.balance).toBe(INITIAL_BALANCE);
+
+                    //WALLET 5 ---> WALLET 4 (transfer4)
+                    wallet5.createOrUpdateTransaction(wallet4.publicKey, transfer4, blockchain, tp);
+
+                    expect(wallet3.calculateBalance(blockchain)).toBe(INITIAL_BALANCE);
+                    expect(wallet4.calculateBalance(blockchain)).toBe(INITIAL_BALANCE);
+                    expect(wallet5.calculateBalance(blockchain)).toBe(INITIAL_BALANCE);
+
+                    expect(wallet3.balance).toBe(INITIAL_BALANCE);
+                    expect(wallet4.balance).toBe(INITIAL_BALANCE);
+                    expect(wallet5.balance).toBe(INITIAL_BALANCE);
+
+                    //WALLET 5 ---> WALLET 3 (transfer5)
+                    wallet5.createOrUpdateTransaction(wallet3.publicKey, transfer5, blockchain, tp);
+                    mineMock();
+
+                    expect(wallet3.calculateBalance(blockchain)).toBe(INITIAL_BALANCE - transfer2 - transfer3 + transfer5);
+                    expect(wallet4.calculateBalance(blockchain)).toBe(INITIAL_BALANCE + transfer2 + transfer4);
+                    expect(wallet5.calculateBalance(blockchain)).toBe(INITIAL_BALANCE + transfer3 - transfer4 - transfer5);
+
+                    expect(wallet3.balance).toBe(INITIAL_BALANCE - transfer2 - transfer3 + transfer5);
+                    expect(wallet4.balance).toBe(INITIAL_BALANCE + transfer2 + transfer4);
+                    expect(wallet5.balance).toBe(INITIAL_BALANCE + transfer3 - transfer4 - transfer5);
                 });
 
                 test("transfer back and forth between 2 wallets - mine after both transfers", () => {
@@ -159,12 +300,22 @@ describe("Wallet", () => {
                     expect(wallet3.calculateBalance(blockchain)).toBe(INITIAL_BALANCE);
                     expect(wallet4.calculateBalance(blockchain)).toBe(INITIAL_BALANCE);
 
+                    expect(wallet3.balance).toBe(INITIAL_BALANCE);
+                    expect(wallet4.balance).toBe(INITIAL_BALANCE);
+
                     //WALLET 4 -----> WALLET 3 (transfer1)
                     wallet4.createOrUpdateTransaction(wallet3.publicKey, transfer1, blockchain, tp);
                     mineMock();
 
                     expect(wallet3.calculateBalance(blockchain)).toBe(INITIAL_BALANCE);
                     expect(wallet4.calculateBalance(blockchain)).toBe(INITIAL_BALANCE);
+
+                    expect(wallet3.balance).toBe(INITIAL_BALANCE);
+                    expect(wallet4.balance).toBe(INITIAL_BALANCE);
+                });
+
+                test("transfer back and forth between 3 wallets - mine after 5 transfers", () => {
+
                 });
             });
         });
