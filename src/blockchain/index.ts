@@ -44,7 +44,6 @@ export default class Blockchain {
     }
 
     /**
-     * 
      * @param newBlocks The new blockchain that is a candidate for replacing the current blockchain.
      * @returns True if blockchain was replaced, false otherwise.
      */
